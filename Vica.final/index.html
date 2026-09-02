@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="es" data-theme="dark">
 <head>
+    <script>
+        (function() {
+            var mode = localStorage.getItem("vica_presentation_mode");
+            if (mode) document.documentElement.setAttribute("data-mode", mode);
+            var theme = localStorage.getItem("theme");
+            if (theme) document.documentElement.setAttribute("data-theme", theme);
+        })();
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Vica - Tienda y galería de tarjetas digitales elegantes, personalizables e interactivas para tus eventos más especiales.">
@@ -18,7 +26,7 @@
     <!-- Preconexión e importación de Tipografías desde Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 
     <!-- Vinculación de estilos CSS (Lienzo para la siguiente fase) -->
     <link rel="stylesheet" href="css/styles.css">
@@ -27,6 +35,9 @@
     <!-- Firebase (Realtime Database) - COMPLETA con tus claves en el script -->
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+    <!-- face-api.js (reconocimiento facial) -->
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 
     <style>
     /* ==========================================================================
@@ -55,6 +66,16 @@
     --radius-md: 16px;
     --radius-lg: 24px;
     --radius-full: 9999px;
+
+    /* Fondos adicionales */
+    --bg-overlay-dark: rgba(5, 5, 8, 0.85);
+    --bg-overlay-card: rgba(10, 11, 16, 0.75);
+    --bg-overlay-hover: rgba(10, 11, 16, 0.6);
+    --bg-modal: #0a0b10;
+    --bg-code-tag: rgba(10, 11, 16, 0.75);
+    --border-subtle-dark: rgba(255, 255, 255, 0.15);
+    --divider-dark: rgba(0, 0, 0, 0.35);
+    --text-on-gold: #0a0b10;
 }
 
 /* --- MODO OSCURO (Default) --- */
@@ -82,6 +103,16 @@ html[data-theme="dark"] {
     /* Iconos del interruptor */
     --sun-display: inline-block;
     --moon-display: none;
+
+    /* Variables adicionales para modo oscuro */
+    --bg-overlay-dark: rgba(5, 5, 8, 0.85);
+    --bg-overlay-card: rgba(10, 11, 16, 0.75);
+    --bg-overlay-hover: rgba(10, 11, 16, 0.6);
+    --bg-modal: #0a0b10;
+    --bg-code-tag: rgba(10, 11, 16, 0.75);
+    --border-subtle-dark: rgba(255, 255, 255, 0.15);
+    --divider-dark: rgba(0, 0, 0, 0.35);
+    --text-on-gold: #0a0b10;
 }
 
 /* --- MODO CLARO --- */
@@ -90,9 +121,9 @@ html[data-theme="light"] {
     --bg-secondary: #FFFFFF;
     --bg-nav: rgba(255, 255, 255, 0.9);
     
-    --text-primary: #0A1128;
+     --text-primary: #0A1128;
     --text-secondary: #4A5568;
-    --text-muted: #718096;
+    --text-muted: #5a6170;
 
     /* Glassmorphism & Tarjetas */
     --glass-bg: rgba(255, 255, 255, 0.75);
@@ -109,6 +140,16 @@ html[data-theme="light"] {
     /* Iconos del interruptor */
     --sun-display: none;
     --moon-display: inline-block;
+
+    /* Variables adicionales para modo claro */
+    --bg-overlay-dark: rgba(0, 0, 0, 0.45);
+    --bg-overlay-card: rgba(0, 0, 0, 0.55);
+    --bg-overlay-hover: rgba(0, 0, 0, 0.5);
+    --bg-modal: #ffffff;
+    --bg-code-tag: rgba(0, 0, 0, 0.7);
+    --border-subtle-dark: rgba(0, 0, 0, 0.12);
+    --divider-dark: rgba(0, 0, 0, 0.2);
+    --text-on-gold: #ffffff;
 }
 
 /* ==========================================================================
@@ -512,6 +553,8 @@ button {
 
 /* Contenedor Grid Principal */
 .hero-container {
+    position: relative;
+    z-index: 2;
     max-width: 1280px;
     margin: 0 auto;
     padding: 0 24px;
@@ -1380,8 +1423,8 @@ button {
     position: absolute;
     top: 1rem;
     left: 1rem;
-    background: rgba(10, 11, 16, 0.75);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: var(--bg-code-tag);
+    border: 1px solid var(--border-subtle-dark);
     backdrop-filter: blur(6px);
     color: var(--gold-light);
     font-family: monospace;
@@ -1395,7 +1438,7 @@ button {
 .card-hover-actions {
     position: absolute;
     inset: 0;
-    background: rgba(10, 11, 16, 0.6);
+    background: var(--bg-overlay-hover);
     backdrop-filter: blur(4px);
     display: flex;
     align-items: center;
@@ -1459,6 +1502,21 @@ button {
     color: var(--text-muted);
     line-height: 1.4;
     margin-bottom: 1.25rem;
+}
+
+.card-item-price {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--gold-primary);
+    margin-bottom: 1rem;
+    padding: 8px 12px;
+    background: rgba(212, 175, 55, 0.08);
+    border: 1px dashed var(--border-gold);
+    border-radius: var(--radius-md);
 }
 
 /* Botón Dorado Full Width */
@@ -1660,7 +1718,7 @@ button {
 .modal-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(5, 5, 8, 0.85);
+  background: var(--bg-overlay-dark);
   backdrop-filter: blur(8px);
 }
 
@@ -1730,7 +1788,7 @@ button {
   position: absolute;
   bottom: 12px;
   left: 12px;
-  background: rgba(0, 0, 0, 0.75);
+  background: var(--bg-overlay-card);
   border: 1px solid var(--border-gold);
   color: var(--gold-light);
   font-size: 0.75rem;
@@ -1748,6 +1806,20 @@ button {
   font-size: 0.9rem;
   color: var(--text-muted);
   margin-bottom: 24px;
+}
+
+.modal-price-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--gold-primary);
+  padding: 10px 18px;
+  background: rgba(212, 175, 55, 0.08);
+  border: 1px dashed var(--border-gold);
+  border-radius: var(--radius-md);
+  margin-bottom: 16px;
 }
 
 .modal-order-form {
@@ -2025,7 +2097,7 @@ button {
 .edit-review-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.72);
+  background: var(--bg-overlay-dark);
   backdrop-filter: blur(4px);
 }
 
@@ -2149,7 +2221,6 @@ button {
   color: var(--text-main);
   border-color: var(--border-gold);
 }
-}
 
 /* Tarjetas seleccionables por el admin */
 .testimonial-card.admin-selectable {
@@ -2197,7 +2268,7 @@ button {
   display: none;
   align-items: center;
   gap: 14px;
-  background: var(--bg-dark);
+  background: var(--bg-modal);
   border: 1px solid var(--border-gold);
   border-radius: var(--radius-pill);
   padding: 10px 18px;
@@ -2259,7 +2330,7 @@ button {
 .admin-modal-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.72);
+  background: var(--bg-overlay-dark);
   backdrop-filter: blur(4px);
 }
 
@@ -2323,6 +2394,45 @@ button {
 }
 
 /* Toggle de visibilidad de contraseña en el formulario admin */
+.admin-face-box {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    background: var(--bg-overlay-card);
+    border: 1px solid var(--border-subtle-dark);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.admin-face-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scaleX(-1);
+    background: #000;
+}
+
+.admin-face-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.55);
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    text-align: center;
+    padding: 12px;
+    transition: opacity var(--transition-normal);
+}
+
+.admin-face-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
 .input-with-toggle {
   position: relative;
   display: flex;
@@ -2522,6 +2632,20 @@ button {
   font-size: 1rem;
 }
 
+.custom-price-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--gold-primary);
+  padding: 12px 24px;
+  background: rgba(212, 175, 55, 0.08);
+  border: 1px dashed var(--border-gold);
+  border-radius: var(--radius-md);
+  margin-bottom: 24px;
+}
+
 .btn-cta-large {
   padding: 16px 36px;
   font-size: 1rem;
@@ -2588,6 +2712,60 @@ button {
 .cta-custom-form .btn-cta-large {
   margin-top: 4px;
   justify-content: center;
+}
+
+/* ==========================================
+   SECCIÓN: HORARIO DE ATENCIÓN
+========================================== */
+.horario-section {
+  padding: 6rem 0;
+  background-color: var(--bg-dark-main);
+  position: relative;
+  overflow: hidden;
+}
+
+.horario-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.75rem;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.horario-card {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 28px;
+  text-align: center;
+  transition: var(--transition);
+}
+
+.horario-card:hover {
+  border-color: var(--border-gold);
+}
+
+.horario-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.horario-icon {
+  color: var(--gold-primary);
+  flex-shrink: 0;
+}
+
+.horario-dia {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.horario-hora {
+  color: var(--text-main);
+  font-size: 1.15rem;
+  font-weight: 600;
 }
 
 /* FOOTER */
@@ -2752,6 +2930,32 @@ button {
   --radius-md: 12px;
   --radius-pill: 50px;
   --transition-smooth: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  --bg-overlay-dark: rgba(0, 0, 0, 0.45);
+  --bg-overlay-card: rgba(0, 0, 0, 0.55);
+  --bg-overlay-hover: rgba(0, 0, 0, 0.5);
+  --bg-modal: #ffffff;
+  --bg-code-tag: rgba(0, 0, 0, 0.7);
+  --border-subtle-dark: rgba(0, 0, 0, 0.12);
+  --divider-dark: rgba(0, 0, 0, 0.2);
+  --text-on-gold: #ffffff;
+}
+
+/* Pie de página más oscuro en modo claro para mejor legibilidad */
+html[data-theme="light"] .footer-brand-desc,
+html[data-theme="light"] .footer-contact-info,
+html[data-theme="light"] .footer-links-list a,
+html[data-theme="light"] .footer-col-title,
+html[data-theme="light"] .social-btn {
+  color: #000000;
+}
+
+html[data-theme="light"] .footer-links-list a:hover {
+  color: var(--gold-primary);
+}
+
+/* Iconos sociales del footer en negro en modo claro */
+html[data-theme="light"] .social-btn {
+  border-color: rgba(0, 0, 0, 0.25);
 }
 
 html[data-theme="light"] {
@@ -2761,7 +2965,7 @@ html[data-theme="light"] {
     
     --text-primary: #0A1128;
     --text-secondary: #4A5568;
-    --text-muted: #718096;
+    --text-muted: #5a6170;
 
     /* Glassmorphism & Tarjetas */
     --glass-bg: rgba(255, 255, 255, 0.75);
@@ -2778,6 +2982,15 @@ html[data-theme="light"] {
     /* Iconos del interruptor */
     --sun-display: none;
     --moon-display: inline-block;
+
+    --bg-overlay-dark: rgba(0, 0, 0, 0.45);
+    --bg-overlay-card: rgba(0, 0, 0, 0.55);
+    --bg-overlay-hover: rgba(0, 0, 0, 0.5);
+    --bg-modal: #ffffff;
+    --bg-code-tag: rgba(0, 0, 0, 0.7);
+    --border-subtle-dark: rgba(0, 0, 0, 0.12);
+    --divider-dark: rgba(0, 0, 0, 0.2);
+    --text-on-gold: #ffffff;
 }
 
 /* Ocultar difuminados de fondo (glows) en modo claro */
@@ -2862,6 +3075,7 @@ html[data-theme="light"] .ambient-glow {
     position: absolute;
     top: 90px;
     left: 24px;
+    z-index: 10;
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
@@ -2895,8 +3109,8 @@ html[data-theme="light"] .ambient-glow {
     margin: 1.5rem auto 0;
     max-width: 640px;
     position: relative;
-    background: rgba(10, 11, 16, 0.55);
-    border: 1px solid rgba(214, 214, 214, 0.18);
+    background: var(--bg-overlay-card);
+    border: 1px solid var(--border-subtle-dark);
     border-radius: 22px;
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
@@ -3057,7 +3271,7 @@ html[data-theme="light"] .especiales-card-text {
 .offer-modal-backdrop {
     position: absolute;
     inset: 0;
-    background: rgba(5, 5, 8, 0.85);
+    background: var(--bg-overlay-dark);
     backdrop-filter: blur(8px);
 }
 
@@ -3118,6 +3332,26 @@ html[data-theme="light"] .especiales-card-text {
     color: var(--text-muted);
     font-weight: 600;
     pointer-events: none;
+}
+
+.duration-input-wrapper {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.duration-input {
+    flex: 1;
+}
+
+.duration-unit-select {
+    width: auto;
+    min-width: 110px;
+    padding-right: 32px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23d4af37' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    cursor: pointer;
 }
 
 .offer-form .form-group {
@@ -3240,7 +3474,7 @@ html[data-theme="light"] .discount-card {
 .discount-divider {
     width: 1px;
     height: 60px;
-    border-left: 2px dotted rgba(0, 0, 0, 0.35);
+    border-left: 2px dotted var(--divider-dark);
     flex-shrink: 0;
 }
 
@@ -3252,14 +3486,14 @@ html[data-theme="light"] .discount-card {
 }
 
 .discount-code-box {
-    background: rgba(0, 0, 0, 0.25);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: var(--bg-overlay-card);
+    border: 1px solid var(--border-subtle-dark);
     border-radius: 10px;
     padding: 10px 18px;
     font-family: 'Courier New', monospace;
     font-size: 1.2rem;
     font-weight: 700;
-    color: #0a0b10;
+    color: var(--text-on-gold);
     letter-spacing: 2px;
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
     box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
@@ -3385,7 +3619,7 @@ html[data-theme="light"] .discount-card {
         width: 80%;
         height: 1px;
         border-left: none;
-        border-top: 2px dotted rgba(0, 0, 0, 0.35);
+        border-top: 2px dotted var(--divider-dark);
     }
 
     .discount-code-section {
@@ -3398,6 +3632,1357 @@ html[data-theme="light"] .discount-card {
     }
 }
 
+/* ==========================================
+   RESPONSIVE MEJORADO PARA MODO OSCURO
+   Ajustes adicionales para pantallas pequeñas
+========================================= */
+@media (max-width: 480px) {
+    .hero-section {
+        padding-top: 100px;
+        padding-bottom: 40px;
+    }
+
+    .hero-title {
+        font-size: 1.8rem;
+    }
+
+    .hero-subtitle {
+        font-size: 0.95rem;
+    }
+
+    .hero-actions-group {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .btn-large {
+        width: 100%;
+        padding: 14px 20px;
+        font-size: 0.95rem;
+    }
+
+    .cards-3d-scene {
+        max-width: 260px;
+        height: 360px;
+    }
+
+    .card-featured-front {
+        width: 210px;
+        height: 330px;
+        left: 20px;
+        top: 15px;
+    }
+
+    .card-back-left {
+        width: 170px;
+        height: 250px;
+        left: -5px;
+    }
+
+    .card-back-right {
+        width: 180px;
+        height: 260px;
+        right: -5px;
+    }
+
+    .card-content-wrapper {
+        padding: 16px 12px;
+    }
+
+    .card-couple-names {
+        font-size: 1.2rem;
+    }
+
+    .card-tag-gold {
+        font-size: 0.6rem;
+    }
+
+    .card-event-type {
+        font-size: 0.7rem;
+    }
+
+    .floating-gold-badge {
+        width: 55px;
+        height: 55px;
+        right: -8px;
+        top: -10px;
+    }
+
+    .badge-seal-text {
+        font-size: 0.7rem;
+    }
+
+    .badge-seal-sub {
+        font-size: 0.5rem;
+    }
+
+    .categories-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .cards-gallery-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .category-card {
+        max-width: 100%;
+    }
+
+    .gallery-filter-tabs {
+        justify-content: flex-start;
+        padding: 0.4rem;
+        gap: 0.5rem;
+    }
+
+    .filter-tab {
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+    }
+
+    .section-container {
+        padding: 40px 16px;
+    }
+
+    .section-title {
+        font-size: 1.6rem;
+    }
+
+    .section-description {
+        font-size: 0.95rem;
+    }
+
+    .footer-grid {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+
+    .modal-dialog {
+        max-height: 95vh;
+        margin: 10px;
+    }
+
+    .modal-content-grid {
+        padding: 16px;
+        gap: 16px;
+    }
+
+    .modal-img-container {
+        min-height: 200px;
+    }
+
+    .process-steps-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .testimonials-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .testimonial-card {
+        padding: 20px;
+    }
+
+    .faq-question {
+        padding: 16px 20px;
+        font-size: 0.95rem;
+    }
+
+    .faq-answer {
+        padding: 0 20px 16px;
+        font-size: 0.9rem;
+    }
+
+    .cta-banner-card {
+        padding: 40px 20px;
+    }
+
+    .cta-title {
+        font-size: 1.5rem;
+    }
+
+    .back-btn {
+        align-self: center;
+        font-size: 0.85rem;
+        padding: 0.5rem 1rem;
+    }
+
+    .especiales-back {
+        padding: 0.5rem;
+        font-size: 0;
+        gap: 0;
+    }
+
+    .especiales-back svg {
+        width: 18px;
+        height: 18px;
+    }
+}
+
+/* Reducir efectos visuales pesados en modo oscuro para pantallas pequeñas */
+@media (max-width: 768px) {
+    html[data-theme="dark"] .ambient-glow {
+        filter: blur(60px);
+        opacity: 0.5;
+    }
+
+    html[data-theme="dark"] .glow-purple,
+    html[data-theme="dark"] .glow-gold,
+    html[data-theme="dark"] .glow-blue {
+        width: 250px;
+        height: 250px;
+    }
+
+    html[data-theme="dark"] .glow-purple-soft,
+    html[data-theme="dark"] .glow-purple-soft {
+        width: 200px;
+        height: 200px;
+    }
+
+    html[data-theme="dark"] .glow-gold-soft,
+    html[data-theme="dark"] .glow-gold-soft {
+        width: 200px;
+        height: 200px;
+    }
+
+    html[data-theme="dark"] .glow-blue-soft {
+        width: 180px;
+        height: 180px;
+    }
+
+    .cards-3d-scene {
+        max-width: 340px;
+        height: 460px;
+    }
+
+    .card-featured-front {
+        width: 250px;
+        height: 390px;
+        left: 45px;
+        top: 30px;
+    }
+
+    .card-back-left {
+        width: 200px;
+        height: 280px;
+    }
+
+    .card-back-right {
+        width: 210px;
+        height: 290px;
+    }
+
+    .card-content-wrapper {
+        padding: 20px 16px;
+    }
+
+    .card-couple-names {
+        font-size: 1.4rem;
+    }
+
+    .floating-gold-badge {
+        width: 70px;
+        height: 70px;
+        right: 0px;
+        top: -15px;
+    }
+
+    .badge-seal-text {
+        font-size: 0.75rem;
+    }
+
+    .nav-container {
+        padding: 12px 20px;
+    }
+
+    .main-navigation {
+        top: 68px;
+        height: calc(100vh - 68px);
+    }
+
+    .section-container {
+        padding: 50px 20px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .hero-container {
+        grid-template-columns: 1fr;
+        gap: 50px;
+        text-align: center;
+    }
+
+    .hero-text-block {
+        align-items: center;
+    }
+
+    .badges-list {
+        justify-content: center;
+    }
+
+    .hero-actions-group {
+        justify-content: center;
+    }
+
+    .hero-trust-indicator {
+        justify-content: center;
+    }
+
+    .cards-3d-scene {
+        max-width: 360px;
+        height: 480px;
+    }
+
+    .card-featured-front {
+        width: 270px;
+        height: 420px;
+        left: 45px;
+    }
+
+    .card-back-left {
+        width: 220px;
+        height: 310px;
+    }
+
+    .card-back-right {
+        width: 230px;
+        height: 320px;
+    }
+}
+
+/* Disable hover animations on touch devices for better performance */
+@media (hover: none) {
+    .category-card:hover,
+    .gallery-card-item:hover .card-item-glass-wrapper,
+    .process-step-card:hover,
+    .testimonial-card:hover,
+    .btn-gold:hover,
+    .btn-outline-gold:hover,
+    .hero-visual-stage:hover .card-featured-front,
+    .hero-visual-stage:hover .card-back-left,
+    .hero-visual-stage:hover .card-back-right {
+        transform: none;
+    }
+
+    .gallery-card-item:hover .card-item-img {
+        transform: none;
+    }
+
+
+}
+
+</style>
+
+<!-- ==========================================================================
+   MODOS DE PRESENTACIÓN SECRETOS (admin → 6,7)
+   Cada modo sobreescribe las variables CSS para transformar por completo la
+   apariencia de la página.
+   ========================================================================== -->
+<style>
+/* --- MODO 1: NEÓN (Cyberpunk) --- */
+html[data-mode="neon"] {
+    --bg-main: #05010f;
+    --bg-secondary: #0c0420;
+    --bg-nav: rgba(8, 2, 20, 0.85);
+
+    --text-primary: #eafdff;
+    --text-secondary: #9be7ff;
+    --text-muted: #6f7bd6;
+
+    --glass-bg: rgba(22, 8, 44, 0.6);
+    --glass-bg-hover: rgba(34, 12, 64, 0.75);
+    --glass-border: rgba(0, 255, 231, 0.45);
+    --glass-border-hover: rgba(255, 0, 225, 0.6);
+    --glass-shadow: 0 20px 50px rgba(0, 255, 231, 0.25);
+
+    --gold-solid: #00ffe7;
+    --gold-light: #ff5cf0;
+    --gold-dark: #7a00ff;
+    --gold-gradient: linear-gradient(135deg, #00ffe7 0%, #7a00ff 35%, #ff00e1 70%, #00ffe7 100%);
+    --gold-gradient-hover: linear-gradient(135deg, #ff00e1 0%, #7a00ff 35%, #00ffe7 60%, #ff5cf0 100%);
+
+    --purple-glow: rgba(122, 0, 255, 0.35);
+    --gold-glow: rgba(0, 255, 231, 0.3);
+    --blue-glow: rgba(255, 0, 225, 0.25);
+
+    --bg-overlay-dark: rgba(2, 0, 10, 0.9);
+    --bg-overlay-card: rgba(10, 2, 28, 0.8);
+    --bg-overlay-hover: rgba(10, 2, 28, 0.6);
+    --bg-modal: #0a0418;
+    --bg-code-tag: rgba(10, 2, 28, 0.85);
+    --border-subtle-dark: rgba(0, 255, 231, 0.25);
+    --divider-dark: rgba(0, 255, 231, 0.2);
+    --text-on-gold: #05010f;
+
+    --bg-dark-main: #05010f;
+    --bg-dark-card: rgba(22, 8, 44, 0.6);
+    --bg-card: rgba(18, 6, 38, 0.75);
+    --bg-card-hover: rgba(30, 10, 56, 0.9);
+
+    --border-glass: rgba(0, 255, 231, 0.18);
+    --border-gold: rgba(0, 255, 231, 0.45);
+    --border-gold-glow: rgba(0, 255, 231, 0.55);
+    --border-subtle: rgba(0, 255, 231, 0.15);
+
+    --gold-primary: #00ffe7;
+    --gold-light: #ff5cf0;
+    --text-main: #eafdff;
+    --text-muted: #8fa0e8;
+    --text-gold: #ff5cf0;
+}
+
+html[data-mode="neon"] body {
+    background-image:
+        linear-gradient(rgba(0, 255, 231, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 0, 225, 0.06) 1px, transparent 1px);
+    background-size: 44px 44px;
+}
+
+html[data-mode="neon"] .glow-gold,
+html[data-mode="neon"] .glow-gold-soft { background: rgba(0, 255, 231, 0.25); }
+html[data-mode="neon"] .glow-purple,
+html[data-mode="neon"] .glow-purple-soft { background: rgba(122, 0, 255, 0.3); }
+html[data-mode="neon"] .glow-blue,
+html[data-mode="neon"] .glow-blue-soft { background: rgba(255, 0, 225, 0.22); }
+
+html[data-mode="neon"] .btn-gold,
+html[data-mode="neon"] .btn-gold:hover {
+    box-shadow: 0 0 18px rgba(0, 255, 231, 0.7), 0 0 40px rgba(255, 0, 225, 0.4);
+}
+
+html[data-mode="neon"] .gold-gradient-text {
+    filter: drop-shadow(0 0 6px rgba(0, 255, 231, 0.6));
+}
+
+/* --- MODO 2: PASTEL (Suave y cálido) --- */
+html[data-mode="pastel"] {
+    --bg-main: #fff5f8;
+    --bg-secondary: #fffafb;
+    --bg-nav: rgba(255, 245, 248, 0.9);
+
+    --text-primary: #5b3a4a;
+    --text-secondary: #7a5a6a;
+    --text-muted: #7a5a6a;
+
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-bg-hover: rgba(255, 255, 255, 0.9);
+    --glass-border: rgba(255, 150, 190, 0.45);
+    --glass-border-hover: rgba(255, 120, 175, 0.7);
+    --glass-shadow: 0 18px 40px rgba(255, 150, 190, 0.25);
+
+    --gold-solid: #ff8fb1;
+    --gold-light: #ffe3ec;
+    --gold-dark: #f0c0d2;
+    --gold-gradient: linear-gradient(135deg, #ffd1e3 0%, #ff8fb1 40%, #ffc2d6 70%, #ffb3c9 100%);
+    --gold-gradient-hover: linear-gradient(135deg, #ffb3c9 0%, #ff8fb1 35%, #ffd1e3 60%, #ffc2d6 100%);
+
+    --purple-glow: rgba(199, 164, 232, 0.22);
+    --gold-glow: rgba(255, 150, 190, 0.3);
+    --blue-glow: rgba(160, 200, 240, 0.2);
+
+    --bg-overlay-dark: rgba(91, 58, 74, 0.55);
+    --bg-overlay-card: rgba(91, 58, 74, 0.5);
+    --bg-overlay-hover: rgba(91, 58, 74, 0.4);
+    --bg-modal: #fff5f8;
+    --bg-code-tag: rgba(91, 58, 74, 0.7);
+    --border-subtle-dark: rgba(91, 58, 74, 0.15);
+    --divider-dark: rgba(91, 58, 74, 0.15);
+    --text-on-gold: #ffffff;
+
+    --bg-dark-main: #fff5f8;
+    --bg-dark-card: rgba(255, 255, 255, 0.7);
+    --bg-card: rgba(255, 255, 255, 0.75);
+    --bg-card-hover: rgba(255, 240, 246, 0.95);
+
+    --border-glass: rgba(255, 150, 190, 0.2);
+    --border-gold: rgba(255, 150, 190, 0.5);
+    --border-gold-glow: rgba(255, 150, 190, 0.55);
+    --border-subtle: rgba(91, 58, 74, 0.12);
+
+    --gold-primary: #ff8fb1;
+    --gold-light: #ffe3ec;
+    --text-main: #5b3a4a;
+    --text-muted: #7a5a6a;
+    --text-gold: #b35a7a;
+}
+
+html[data-mode="pastel"] body {
+    background-image: radial-gradient(circle at 20% 15%, rgba(255, 209, 227, 0.5), transparent 45%),
+                      radial-gradient(circle at 80% 85%, rgba(214, 224, 255, 0.5), transparent 45%);
+}
+
+html[data-mode="pastel"] .glow-gold,
+html[data-mode="pastel"] .glow-gold-soft { background: rgba(255, 143, 177, 0.3); }
+html[data-mode="pastel"] .glow-purple,
+html[data-mode="pastel"] .glow-purple-soft { background: rgba(199, 164, 232, 0.3); }
+html[data-mode="pastel"] .glow-blue,
+html[data-mode="pastel"] .glow-blue-soft { background: rgba(160, 200, 240, 0.3); }
+
+/* --- MODO 3: VINTAGE (Sepia / Periódico) --- */
+html[data-mode="retro"] {
+    --bg-main: #ece3d2;
+    --bg-secondary: #e4d8c2;
+    --bg-nav: rgba(236, 227, 210, 0.92);
+
+    --text-primary: #3b2f2f;
+    --text-secondary: #6b5b4f;
+    --text-muted: #5a4a3a;
+
+    --glass-bg: rgba(232, 222, 205, 0.75);
+    --glass-bg-hover: rgba(225, 213, 193, 0.9);
+    --glass-border: rgba(120, 90, 60, 0.45);
+    --glass-border-hover: rgba(120, 90, 60, 0.7);
+    --glass-shadow: 0 18px 40px rgba(59, 47, 47, 0.25);
+
+    --gold-solid: #a9743b;
+    --gold-light: #d8b98c;
+    --gold-dark: #6f4a24;
+    --gold-gradient: linear-gradient(135deg, #8a5a2b 0%, #d8b98c 40%, #a9743b 70%, #c79a5b 100%);
+    --gold-gradient-hover: linear-gradient(135deg, #c79a5b 0%, #a9743b 35%, #d8b98c 60%, #8a5a2b 100%);
+
+    --purple-glow: rgba(120, 90, 60, 0.18);
+    --gold-glow: rgba(169, 116, 59, 0.25);
+    --blue-glow: rgba(90, 110, 120, 0.15);
+
+    --bg-overlay-dark: rgba(59, 47, 47, 0.78);
+    --bg-overlay-card: rgba(59, 47, 47, 0.7);
+    --bg-overlay-hover: rgba(59, 47, 47, 0.55);
+    --bg-modal: #e4d8c2;
+    --bg-code-tag: rgba(59, 47, 47, 0.75);
+    --border-subtle-dark: rgba(59, 47, 47, 0.2);
+    --divider-dark: rgba(59, 47, 47, 0.2);
+    --text-on-gold: #f3ead7;
+
+    --bg-dark-main: #ece3d2;
+    --bg-dark-card: rgba(232, 222, 205, 0.75);
+    --bg-card: rgba(228, 216, 194, 0.8);
+    --bg-card-hover: rgba(220, 206, 182, 0.92);
+
+    --border-glass: rgba(120, 90, 60, 0.22);
+    --border-gold: rgba(120, 90, 60, 0.5);
+    --border-gold-glow: rgba(169, 116, 59, 0.55);
+    --border-subtle: rgba(59, 47, 47, 0.15);
+
+    --gold-primary: #a9743b;
+    --gold-light: #d8b98c;
+    --text-main: #3b2f2f;
+    --text-muted: #5a4a3a;
+    --text-gold: #8a5a2a;
+}
+
+html[data-mode="retro"] body {
+    background-image:
+        repeating-linear-gradient(0deg, rgba(59, 47, 47, 0.05) 0px, rgba(59, 47, 47, 0.05) 1px, transparent 1px, transparent 4px);
+}
+
+html[data-mode="retro"] .glow-gold,
+html[data-mode="retro"] .glow-gold-soft { background: rgba(169, 116, 59, 0.28); }
+html[data-mode="retro"] .glow-purple,
+html[data-mode="retro"] .glow-purple-soft { background: rgba(120, 90, 60, 0.22); }
+html[data-mode="retro"] .glow-blue,
+html[data-mode="retro"] .glow-blue-soft { background: rgba(90, 110, 120, 0.18); }
+
+/* --- MODO 4: OCÉANO (Azul profundo) --- */
+html[data-mode="ocean"] {
+    --bg-main: #021a2e;
+    --bg-secondary: #04263f;
+    --bg-nav: rgba(2, 26, 46, 0.85);
+
+    --text-primary: #e6f7ff;
+    --text-secondary: #8fc7e0;
+    --text-muted: #5f93ad;
+
+    --glass-bg: rgba(6, 40, 64, 0.65);
+    --glass-bg-hover: rgba(10, 56, 88, 0.75);
+    --glass-border: rgba(60, 200, 255, 0.4);
+    --glass-border-hover: rgba(120, 230, 255, 0.6);
+    --glass-shadow: 0 20px 45px rgba(0, 80, 140, 0.4);
+
+    --gold-solid: #38e1ff;
+    --gold-light: #b4f3ff;
+    --gold-dark: #0a7fa0;
+    --gold-gradient: linear-gradient(135deg, #38e1ff 0%, #0a7fa0 40%, #6ef0ff 70%, #2bb8e0 100%);
+    --gold-gradient-hover: linear-gradient(135deg, #6ef0ff 0%, #38e1ff 35%, #0a7fa0 60%, #b4f3ff 100%);
+
+    --purple-glow: rgba(40, 120, 200, 0.25);
+    --gold-glow: rgba(56, 225, 255, 0.3);
+    --blue-glow: rgba(80, 200, 255, 0.25);
+
+    --bg-overlay-dark: rgba(2, 18, 32, 0.88);
+    --bg-overlay-card: rgba(4, 30, 50, 0.8);
+    --bg-overlay-hover: rgba(4, 30, 50, 0.6);
+    --bg-modal: #04263f;
+    --bg-code-tag: rgba(4, 30, 50, 0.85);
+    --border-subtle-dark: rgba(56, 225, 255, 0.22);
+    --divider-dark: rgba(56, 225, 255, 0.2);
+    --text-on-gold: #021a2e;
+
+    --bg-dark-main: #021a2e;
+    --bg-dark-card: rgba(6, 40, 64, 0.65);
+    --bg-card: rgba(6, 36, 58, 0.8);
+    --bg-card-hover: rgba(10, 52, 82, 0.92);
+
+    --border-glass: rgba(60, 200, 255, 0.18);
+    --border-gold: rgba(60, 200, 255, 0.45);
+    --border-gold-glow: rgba(56, 225, 255, 0.55);
+    --border-subtle: rgba(56, 225, 255, 0.15);
+
+    --gold-primary: #38e1ff;
+    --gold-light: #b4f3ff;
+    --text-main: #e6f7ff;
+    --text-muted: #5f93ad;
+    --text-gold: #6ef0ff;
+}
+
+html[data-mode="ocean"] body {
+    background-image: radial-gradient(circle at 50% 120%, rgba(56, 225, 255, 0.18), transparent 55%);
+}
+
+html[data-mode="ocean"] .glow-gold,
+html[data-mode="ocean"] .glow-gold-soft { background: rgba(56, 225, 255, 0.28); }
+html[data-mode="ocean"] .glow-purple,
+html[data-mode="ocean"] .glow-purple-soft { background: rgba(40, 120, 200, 0.25); }
+html[data-mode="ocean"] .glow-blue,
+html[data-mode="ocean"] .glow-blue-soft { background: rgba(80, 200, 255, 0.3); }
+
+/* --- MODO 5: BOSQUE (Verde naturaleza) --- */
+html[data-mode="forest"] {
+    --bg-main: #0c1a0f;
+    --bg-secondary: #122416;
+    --bg-nav: rgba(12, 26, 15, 0.85);
+
+    --text-primary: #eafff0;
+    --text-secondary: #a7d6b0;
+    --text-muted: #6f9b78;
+
+    --glass-bg: rgba(20, 40, 24, 0.65);
+    --glass-bg-hover: rgba(30, 56, 34, 0.75);
+    --glass-border: rgba(110, 220, 130, 0.4);
+    --glass-border-hover: rgba(150, 240, 160, 0.6);
+    --glass-shadow: 0 20px 45px rgba(20, 80, 40, 0.4);
+
+    --gold-solid: #7be08f;
+    --gold-light: #c8f5d2;
+    --gold-dark: #2f7a3f;
+    --gold-gradient: linear-gradient(135deg, #7be08f 0%, #2f7a3f 40%, #b6f5c2 70%, #4fb566 100%);
+    --gold-gradient-hover: linear-gradient(135deg, #b6f5c2 0%, #7be08f 35%, #2f7a3f 60%, #c8f5d2 100%);
+
+    --purple-glow: rgba(60, 160, 90, 0.2);
+    --gold-glow: rgba(123, 224, 143, 0.3);
+    --blue-glow: rgba(120, 200, 150, 0.2);
+
+    --bg-overlay-dark: rgba(8, 18, 10, 0.88);
+    --bg-overlay-card: rgba(14, 30, 18, 0.8);
+    --bg-overlay-hover: rgba(14, 30, 18, 0.6);
+    --bg-modal: #122416;
+    --bg-code-tag: rgba(14, 30, 18, 0.85);
+    --border-subtle-dark: rgba(123, 224, 143, 0.22);
+    --divider-dark: rgba(123, 224, 143, 0.2);
+    --text-on-gold: #0c1a0f;
+
+    --bg-dark-main: #0c1a0f;
+    --bg-dark-card: rgba(20, 40, 24, 0.65);
+    --bg-card: rgba(18, 38, 22, 0.8);
+    --bg-card-hover: rgba(28, 52, 32, 0.92);
+
+    --border-glass: rgba(110, 220, 130, 0.18);
+    --border-gold: rgba(110, 220, 130, 0.45);
+    --border-gold-glow: rgba(123, 224, 143, 0.55);
+    --border-subtle: rgba(123, 224, 143, 0.15);
+
+    --gold-primary: #7be08f;
+    --gold-light: #c8f5d2;
+    --text-main: #eafff0;
+    --text-muted: #6f9b78;
+    --text-gold: #b6f5c2;
+}
+
+html[data-mode="forest"] body {
+    background-image: radial-gradient(circle at 50% 0%, rgba(123, 224, 143, 0.14), transparent 50%);
+}
+
+html[data-mode="forest"] .glow-gold,
+html[data-mode="forest"] .glow-gold-soft { background: rgba(123, 224, 143, 0.28); }
+html[data-mode="forest"] .glow-purple,
+html[data-mode="forest"] .glow-purple-soft { background: rgba(60, 160, 90, 0.22); }
+html[data-mode="forest"] .glow-blue,
+html[data-mode="forest"] .glow-blue-soft { background: rgba(120, 200, 150, 0.2); }
+
+/* --- MODO 6: ATARDECER (Naranja / Rosa) --- */
+html[data-mode="sunset"] {
+    --bg-main: #2a0f1f;
+    --bg-secondary: #3a1428;
+    --bg-nav: rgba(42, 15, 31, 0.85);
+
+    --text-primary: #fff1ec;
+    --text-secondary: #ffb59e;
+    --text-muted: #d68a76;
+
+    --glass-bg: rgba(58, 20, 40, 0.65);
+    --glass-bg-hover: rgba(78, 28, 52, 0.75);
+    --glass-border: rgba(255, 140, 90, 0.45);
+    --glass-border-hover: rgba(255, 180, 120, 0.65);
+    --glass-shadow: 0 20px 45px rgba(180, 40, 90, 0.4);
+
+    --gold-solid: #ff9a5a;
+    --gold-light: #ffd0b0;
+    --gold-dark: #c2452f;
+    --gold-gradient: linear-gradient(135deg, #ff7e5f 0%, #ff9a5a 35%, #feb47b 70%, #ff5e8a 100%);
+    --gold-gradient-hover: linear-gradient(135deg, #ff5e8a 0%, #ff9a5a 35%, #ff7e5f 60%, #ffd0b0 100%);
+
+    --purple-glow: rgba(255, 94, 138, 0.25);
+    --gold-glow: rgba(255, 154, 90, 0.3);
+    --blue-glow: rgba(255, 180, 120, 0.2);
+
+    --bg-overlay-dark: rgba(30, 10, 20, 0.88);
+    --bg-overlay-card: rgba(42, 16, 30, 0.8);
+    --bg-overlay-hover: rgba(42, 16, 30, 0.6);
+    --bg-modal: #3a1428;
+    --bg-code-tag: rgba(42, 16, 30, 0.85);
+    --border-subtle-dark: rgba(255, 154, 90, 0.22);
+    --divider-dark: rgba(255, 154, 90, 0.2);
+    --text-on-gold: #2a0f1f;
+
+    --bg-dark-main: #2a0f1f;
+    --bg-dark-card: rgba(58, 20, 40, 0.65);
+    --bg-card: rgba(50, 18, 36, 0.8);
+    --bg-card-hover: rgba(70, 26, 48, 0.92);
+
+    --border-glass: rgba(255, 140, 90, 0.18);
+    --border-gold: rgba(255, 140, 90, 0.45);
+    --border-gold-glow: rgba(255, 154, 90, 0.55);
+    --border-subtle: rgba(255, 154, 90, 0.15);
+
+    --gold-primary: #ff9a5a;
+    --gold-light: #ffd0b0;
+    --text-main: #fff1ec;
+    --text-muted: #d68a76;
+    --text-gold: #ffb89e;
+}
+
+html[data-mode="sunset"] body {
+    background-image: linear-gradient(180deg, rgba(255, 126, 95, 0.18) 0%, transparent 45%),
+                      radial-gradient(circle at 50% 90%, rgba(255, 94, 138, 0.22), transparent 55%);
+}
+
+html[data-mode="sunset"] .glow-gold,
+html[data-mode="sunset"] .glow-gold-soft { background: rgba(255, 154, 90, 0.3); }
+html[data-mode="sunset"] .glow-purple,
+html[data-mode="sunset"] .glow-purple-soft { background: rgba(255, 94, 138, 0.25); }
+html[data-mode="sunset"] .glow-blue,
+html[data-mode="sunset"] .glow-blue-soft { background: rgba(255, 180, 120, 0.22); }
+
+/* --- MODO 7: MONO (Blanco / Negro minimalista) --- */
+html[data-mode="mono"] {
+    --bg-main: #0a0a0a;
+    --bg-secondary: #141414;
+    --bg-nav: rgba(10, 10, 10, 0.9);
+
+    --text-primary: #f5f5f5;
+    --text-secondary: #b0b0b0;
+    --text-muted: #7a7a7a;
+
+    --glass-bg: rgba(26, 26, 26, 0.7);
+    --glass-bg-hover: rgba(36, 36, 36, 0.85);
+    --glass-border: rgba(255, 255, 255, 0.22);
+    --glass-border-hover: rgba(255, 255, 255, 0.5);
+    --glass-shadow: 0 20px 45px rgba(0, 0, 0, 0.7);
+
+    --gold-solid: #ffffff;
+    --gold-light: #e0e0e0;
+    --gold-dark: #888888;
+    --gold-gradient: linear-gradient(135deg, #ffffff 0%, #b0b0b0 50%, #ffffff 100%);
+    --gold-gradient-hover: linear-gradient(135deg, #e0e0e0 0%, #ffffff 50%, #b0b0b0 100%);
+
+    --purple-glow: rgba(255, 255, 255, 0.08);
+    --gold-glow: rgba(255, 255, 255, 0.1);
+    --blue-glow: rgba(200, 200, 200, 0.06);
+
+    --bg-overlay-dark: rgba(0, 0, 0, 0.9);
+    --bg-overlay-card: rgba(10, 10, 10, 0.85);
+    --bg-overlay-hover: rgba(10, 10, 10, 0.65);
+    --bg-modal: #0a0a0a;
+    --bg-code-tag: rgba(10, 10, 10, 0.85);
+    --border-subtle-dark: rgba(255, 255, 255, 0.18);
+    --divider-dark: rgba(255, 255, 255, 0.18);
+    --text-on-gold: #0a0a0a;
+
+    --bg-dark-main: #0a0a0a;
+    --bg-dark-card: rgba(26, 26, 26, 0.7);
+    --bg-card: rgba(20, 20, 20, 0.8);
+    --bg-card-hover: rgba(34, 34, 34, 0.92);
+
+    --border-glass: rgba(255, 255, 255, 0.12);
+    --border-gold: rgba(255, 255, 255, 0.3);
+    --border-gold-glow: rgba(255, 255, 255, 0.4);
+    --border-subtle: rgba(255, 255, 255, 0.12);
+
+    --gold-primary: #ffffff;
+    --gold-light: #e0e0e0;
+    --text-main: #f5f5f5;
+    --text-muted: #7a7a7a;
+    --text-gold: #e0e0e0;
+}
+
+html[data-mode="mono"] body {
+    background-image:
+        repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.02) 0px, rgba(255, 255, 255, 0.02) 1px, transparent 1px, transparent 22px);
+}
+
+html[data-mode="mono"] .glow-gold,
+html[data-mode="mono"] .glow-gold-soft { background: rgba(255, 255, 255, 0.12); }
+html[data-mode="mono"] .glow-purple,
+html[data-mode="mono"] .glow-purple-soft { background: rgba(200, 200, 200, 0.1); }
+html[data-mode="mono"] .glow-blue,
+html[data-mode="mono"] .glow-blue-soft { background: rgba(180, 180, 180, 0.1); }
+
+/* --- MODO 8: CARAMELO (Arcoíris divertido) --- */
+html[data-mode="candy"] {
+    --bg-main: #1a0b2e;
+    --bg-secondary: #25123f;
+    --bg-nav: rgba(26, 11, 46, 0.85);
+
+    --text-primary: #fff0fb;
+    --text-secondary: #ffb3ec;
+    --text-muted: #c98fd6;
+
+    --glass-bg: rgba(42, 18, 64, 0.65);
+    --glass-bg-hover: rgba(58, 26, 84, 0.75);
+    --glass-border: rgba(255, 120, 220, 0.45);
+    --glass-border-hover: rgba(255, 180, 240, 0.65);
+    --glass-shadow: 0 20px 45px rgba(180, 40, 200, 0.4);
+
+    --gold-solid: #ff74d4;
+    --gold-light: #ffc2ef;
+    --gold-dark: #a045c0;
+    --gold-gradient: linear-gradient(135deg, #ff74d4 0%, #74b9ff 35%, #ffe066 70%, #ff9ff3 100%);
+    --gold-gradient-hover: linear-gradient(135deg, #ffe066 0%, #ff74d4 35%, #74b9ff 60%, #ffc2ef 100%);
+
+    --purple-glow: rgba(180, 80, 255, 0.25);
+    --gold-glow: rgba(255, 116, 212, 0.3);
+    --blue-glow: rgba(116, 185, 255, 0.2);
+
+    --bg-overlay-dark: rgba(20, 8, 36, 0.88);
+    --bg-overlay-card: rgba(34, 14, 54, 0.8);
+    --bg-overlay-hover: rgba(34, 14, 54, 0.6);
+    --bg-modal: #25123f;
+    --bg-code-tag: rgba(34, 14, 54, 0.85);
+    --border-subtle-dark: rgba(255, 116, 212, 0.22);
+    --divider-dark: rgba(255, 116, 212, 0.2);
+    --text-on-gold: #1a0b2e;
+
+    --bg-dark-main: #1a0b2e;
+    --bg-dark-card: rgba(42, 18, 64, 0.65);
+    --bg-card: rgba(38, 16, 58, 0.8);
+    --bg-card-hover: rgba(54, 24, 78, 0.92);
+
+    --border-glass: rgba(255, 120, 220, 0.18);
+    --border-gold: rgba(255, 120, 220, 0.45);
+    --border-gold-glow: rgba(255, 116, 212, 0.55);
+    --border-subtle: rgba(255, 116, 212, 0.15);
+
+    --gold-primary: #ff74d4;
+    --gold-light: #ffc2ef;
+    --text-main: #fff0fb;
+    --text-muted: #c98fd6;
+    --text-gold: #ffb3ec;
+}
+
+html[data-mode="candy"] body {
+    background-image:
+        radial-gradient(circle at 15% 20%, rgba(255, 116, 212, 0.2), transparent 40%),
+        radial-gradient(circle at 85% 30%, rgba(116, 185, 255, 0.18), transparent 40%),
+        radial-gradient(circle at 50% 90%, rgba(255, 224, 102, 0.18), transparent 45%);
+}
+html[data-mode="candy"] .glow-gold,
+html[data-mode="candy"] .glow-gold-soft { background: rgba(255, 116, 212, 0.3); }
+html[data-mode="candy"] .glow-purple,
+html[data-mode="candy"] .glow-purple-soft { background: rgba(180, 80, 255, 0.25); }
+    html[data-mode="candy"] .glow-blue,
+    html[data-mode="candy"] .glow-blue-soft { background: rgba(116, 185, 255, 0.22); }
+
+    /* --- MODO 9: LUJO DORADO (Elegancia nocturna, negro ónix con destellos dorados) --- */
+    html[data-mode="lujo"] {
+        --bg-main: #0A0807;
+        --bg-secondary: #13100D;
+        --bg-nav: rgba(10, 8, 7, 0.88);
+
+        --text-primary: #F5E9C8;
+        --text-secondary: #C9B27A;
+        --text-muted: #8A7746;
+
+        /* Cristal profundo con tinte dorado */
+        --glass-bg: rgba(20, 16, 10, 0.72);
+        --glass-bg-hover: rgba(30, 24, 14, 0.85);
+        --glass-border: rgba(212, 175, 55, 0.45);
+        --glass-border-hover: rgba(244, 208, 96, 0.75);
+        --glass-shadow: 0 25px 50px rgba(0, 0, 0, 0.85), 0 0 30px rgba(212, 175, 55, 0.18);
+
+        /* Oro intenso metálico premium */
+        --gold-solid: #E6C656;
+        --gold-light: #FFF1B8;
+        --gold-dark: #8C6211;
+        --gold-gradient: linear-gradient(135deg, #7A5A1A 0%, #E6C656 18%, #FFF1B8 38%, #D4AF37 55%, #FFF8DC 72%, #B8860B 88%, #FFD96A 100%);
+        --gold-gradient-hover: linear-gradient(135deg, #B8860B 0%, #FFD96A 25%, #FFF1B8 50%, #E6C656 75%, #FFF8DC 100%);
+
+        --purple-glow: rgba(212, 175, 55, 0.14);
+        --gold-glow: rgba(244, 208, 96, 0.42);
+        --blue-glow: rgba(212, 175, 55, 0.1);
+
+        --bg-overlay-dark: rgba(5, 4, 3, 0.92);
+        --bg-overlay-card: rgba(10, 8, 7, 0.85);
+        --bg-overlay-hover: rgba(10, 8, 7, 0.7);
+        --bg-modal: #0F0C09;
+        --bg-code-tag: rgba(10, 8, 7, 0.85);
+        --border-subtle-dark: rgba(212, 175, 55, 0.22);
+        --divider-dark: rgba(0, 0, 0, 0.6);
+        --text-on-gold: #1A1408;
+
+        --bg-dark-main: #0A0807;
+        --bg-dark-card: rgba(20, 16, 10, 0.78);
+        --bg-card: rgba(20, 16, 10, 0.85);
+        --bg-card-hover: rgba(30, 24, 14, 0.95);
+
+        --border-glass: rgba(212, 175, 55, 0.22);
+        --border-gold: rgba(212, 175, 55, 0.55);
+        --border-gold-glow: rgba(244, 208, 96, 0.65);
+        --border-subtle: rgba(212, 175, 55, 0.18);
+
+        --gold-primary: #E6C656;
+        --gold-light-var: #FFF1B8;
+        --text-main: #F5E9C8;
+        --text-muted: #8A7746;
+        --text-gold: #FFD96A;
+
+        /* Brillo dorado sutil animado para títulos */
+        --sun-display: none;
+        --moon-display: inline-block;
+    }
+
+    html[data-mode="lujo"] body {
+        background-image:
+            radial-gradient(circle at 12% 18%, rgba(244, 208, 96, 0.12), transparent 45%),
+            radial-gradient(circle at 88% 82%, rgba(212, 175, 55, 0.1), transparent 50%),
+            radial-gradient(circle at 50% 50%, rgba(184, 134, 11, 0.06), transparent 60%);
+        background-attachment: fixed;
+    }
+
+    html[data-mode="lujo"] .glow-gold,
+    html[data-mode="lujo"] .glow-gold-soft {
+        background: rgba(244, 208, 96, 0.5);
+        filter: blur(120px);
+    }
+    html[data-mode="lujo"] .glow-purple,
+    html[data-mode="lujo"] .glow-purple-soft { background: rgba(184, 134, 11, 0.32); }
+    html[data-mode="lujo"] .glow-blue,
+    html[data-mode="lujo"] .glow-blue-soft { background: rgba(212, 175, 55, 0.28); }
+
+    /* Brillo dorado premium en botones */
+    html[data-mode="lujo"] .btn-gold {
+        background: var(--gold-gradient);
+        color: var(--text-on-gold);
+        box-shadow: 0 4px 22px rgba(244, 208, 96, 0.45), 0 0 30px rgba(212, 175, 55, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        text-shadow: 0 1px 0 rgba(255, 240, 200, 0.35);
+        font-weight: 700;
+    }
+    html[data-mode="lujo"] .btn-gold:hover {
+        box-shadow: 0 8px 32px rgba(244, 208, 96, 0.65), 0 0 40px rgba(212, 175, 55, 0.45);
+        background: var(--gold-gradient-hover);
+        color: var(--text-on-gold);
+    }
+
+    html[data-mode="lujo"] .gold-gradient-text {
+        filter: drop-shadow(0 0 8px rgba(244, 208, 96, 0.4)) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6));
+        animation: lujoShimmer 6s ease-in-out infinite;
+    }
+
+    @keyframes lujoShimmer {
+        0%, 100% { filter: drop-shadow(0 0 8px rgba(244, 208, 96, 0.35)) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6)); }
+        50% { filter: drop-shadow(0 0 14px rgba(255, 230, 120, 0.6)) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6)); }
+    }
+
+    /* Tarjetas y secciones con marco dorado más marcado */
+    html[data-mode="lujo"] .category-card,
+    html[data-mode="lujo"] .card-item-glass-wrapper,
+    html[data-mode="lujo"] .process-step-card,
+    html[data-mode="lujo"] .testimonial-card,
+    html[data-mode="lujo"] .modal-dialog,
+    html[data-mode="lujo"] .navbar-header,
+    html[data-mode="lujo"] .cta-banner-card,
+    html[data-mode="lujo"] .faq-item {
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.65), inset 0 0 0 1px rgba(212, 175, 55, 0.15);
+    }
+
+    html[data-mode="lujo"] .category-card:hover,
+    html[data-mode="lujo"] .card-item-glass-wrapper:hover,
+    html[data-mode="lujo"] .process-step-card:hover,
+    html[data-mode="lujo"] .testimonial-card:hover {
+        box-shadow: 0 18px 45px rgba(0, 0, 0, 0.75), 0 0 28px rgba(244, 208, 96, 0.35), inset 0 0 0 1px rgba(244, 208, 96, 0.4);
+    }
+
+    /* Títulos con línea dorada decorativa */
+    html[data-mode="lujo"] .section-title,
+    html[data-mode="lujo"] .hero-title {
+        letter-spacing: 0.5px;
+    }
+
+    /* Bordes más visibles y refinados */
+    html[data-mode="lujo"] .nav-link::after {
+        height: 2px;
+        box-shadow: 0 0 8px rgba(244, 208, 96, 0.6);
+    }
+
+    /* Sello dorado del hero más brillante */
+    html[data-mode="lujo"] .floating-gold-badge {
+        box-shadow: 0 12px 30px rgba(244, 208, 96, 0.55), 0 0 30px rgba(212, 175, 55, 0.4);
+    }
+
+    /* Tarjeta principal destacada: borde metálico dorado reforzado */
+    html[data-mode="lujo"] .card-featured-front {
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 35px rgba(244, 208, 96, 0.25);
+    }
+
+    /* Scrollbar dorada */
+    html[data-mode="lujo"]::-webkit-scrollbar-track { background: #0A0807; }
+    html[data-mode="lujo"]::-webkit-scrollbar-thumb {
+        background: linear-gradient(180deg, #B8860B, #FFD96A, #B8860B);
+        border-radius: 6px;
+    }
+    html[data-mode="lujo"] * { scrollbar-color: #D4AF37 #0A0807; }
+
+    /* El texto sobre dorado se mantiene legible */
+    html[data-mode="lujo"] .btn-gold,
+    html[data-mode="lujo"] .filter-tab.active {
+        color: var(--text-on-gold);
+    }
+
+    /* Precios en blanco para el modo Lujo dorado */
+    html[data-mode="lujo"] .card-item-price,
+    html[data-mode="lujo"] .modal-price-badge,
+    html[data-mode="lujo"] .custom-price-badge,
+    html[data-mode="lujo"] .modal-summary-box {
+        color: #FFFFFF;
+    }
+
+    /* Inputs y textareas con marco dorado tenue */
+    html[data-mode="lujo"] .form-input,
+    html[data-mode="lujo"] .form-textarea {
+        background: rgba(10, 8, 7, 0.6);
+        border-color: rgba(212, 175, 55, 0.25);
+        color: var(--text-main);
+    }
+    html[data-mode="lujo"] .form-input:focus,
+    html[data-mode="lujo"] .form-textarea:focus {
+        border-color: var(--gold-primary);
+        box-shadow: 0 0 0 3px rgba(244, 208, 96, 0.15);
+        background: rgba(20, 16, 10, 0.7);
+    }
+    html[data-mode="lujo"] .form-input::placeholder,
+    html[data-mode="lujo"] .form-textarea::placeholder {
+        color: rgba(212, 175, 55, 0.35);
+    }
+
+    /* Estrellas de calificación con brillo dorado */
+    html[data-mode="lujo"] .stars-rating,
+    html[data-mode="lujo"] .testimonial-stars {
+        text-shadow: 0 0 8px rgba(244, 208, 96, 0.6);
+    }
+
+    /* Lujo siempre permanece oscuro/dorado, incluso con tema claro activo */
+    html[data-theme="light"][data-mode="lujo"] body {
+        background-color: #0A0807;
+        color: var(--text-primary);
+    }
+    html[data-theme="light"][data-mode="lujo"] .modal-dialog {
+        background: #0F0C09 !important;
+        border-color: rgba(212, 175, 55, 0.55) !important;
+        color: var(--text-primary);
+    }
+    html[data-theme="light"][data-mode="lujo"] .modal-dialog .modal-title,
+    html[data-theme="light"][data-mode="lujo"] .modal-dialog .modal-subtitle,
+    html[data-theme="light"][data-mode="lujo"] .modal-dialog .form-label,
+    html[data-theme="light"][data-mode="lujo"] .modal-dialog .summary-row {
+        color: #F5E9C8 !important;
+    }
+    html[data-theme="light"][data-mode="lujo"] .modal-dialog .form-input,
+    html[data-theme="light"][data-mode="lujo"] .modal-dialog .form-textarea {
+        background: rgba(10, 8, 7, 0.6) !important;
+        border-color: rgba(212, 175, 55, 0.3) !important;
+        color: #F5E9C8 !important;
+    }
+    html[data-theme="light"][data-mode="lujo"] .modal-dialog .form-input::placeholder,
+    html[data-theme="light"][data-mode="lujo"] .modal-dialog .form-textarea::placeholder {
+        color: rgba(212, 175, 55, 0.35) !important;
+    }
+    html[data-theme="light"][data-mode="lujo"] .modal-dialog .modal-summary-box {
+        background: rgba(212, 175, 55, 0.08) !important;
+        border-color: rgba(212, 175, 55, 0.45) !important;
+    }
+    html[data-theme="light"][data-mode="lujo"] .modal-dialog .modal-close-btn {
+        background: rgba(212, 175, 55, 0.1) !important;
+        border-color: rgba(212, 175, 55, 0.35) !important;
+        color: #E6C656 !important;
+    }
+    html[data-theme="light"][data-mode="lujo"] .modal-dialog .modal-close-btn:hover {
+        background: rgba(212, 175, 55, 0.22) !important;
+    }
+
+    /* ==========================================================================
+    MODO CLARO + MODOS ESPECIALES: texto oscuro en modal de tarjeta
+    ========================================================================== */
+html[data-theme="light"][data-mode="neon"] .modal-dialog,
+html[data-theme="light"][data-mode="pastel"] .modal-dialog,
+html[data-theme="light"][data-mode="retro"] .modal-dialog,
+html[data-theme="light"][data-mode="ocean"] .modal-dialog,
+html[data-theme="light"][data-mode="forest"] .modal-dialog,
+html[data-theme="light"][data-mode="sunset"] .modal-dialog,
+html[data-theme="light"][data-mode="mono"] .modal-dialog,
+html[data-theme="light"][data-mode="candy"] .modal-dialog,
+html[data-theme="light"][data-mode="lujo"] .modal-dialog {
+    background: #ffffff;
+    border-color: rgba(0, 0, 0, 0.2);
+}
+
+html[data-theme="light"][data-mode="neon"] .modal-dialog .modal-title,
+html[data-theme="light"][data-mode="pastel"] .modal-dialog .modal-title,
+html[data-theme="light"][data-mode="retro"] .modal-dialog .modal-title,
+html[data-theme="light"][data-mode="ocean"] .modal-dialog .modal-title,
+html[data-theme="light"][data-mode="forest"] .modal-dialog .modal-title,
+html[data-theme="light"][data-mode="sunset"] .modal-dialog .modal-title,
+html[data-theme="light"][data-mode="mono"] .modal-dialog .modal-title,
+html[data-theme="light"][data-mode="candy"] .modal-dialog .modal-title,
+html[data-theme="light"][data-mode="lujo"] .modal-dialog .modal-title {
+    color: #0a0a0a;
+}
+
+html[data-theme="light"][data-mode="neon"] .modal-dialog .modal-subtitle,
+html[data-theme="light"][data-mode="pastel"] .modal-dialog .modal-subtitle,
+html[data-theme="light"][data-mode="retro"] .modal-dialog .modal-subtitle,
+html[data-theme="light"][data-mode="ocean"] .modal-dialog .modal-subtitle,
+html[data-theme="light"][data-mode="forest"] .modal-dialog .modal-subtitle,
+html[data-theme="light"][data-mode="sunset"] .modal-dialog .modal-subtitle,
+html[data-theme="light"][data-mode="mono"] .modal-dialog .modal-subtitle,
+html[data-theme="light"][data-mode="candy"] .modal-dialog .modal-subtitle,
+html[data-theme="light"][data-mode="lujo"] .modal-dialog .modal-subtitle {
+    color: #1a1a1a;
+}
+
+html[data-theme="light"][data-mode="neon"] .modal-dialog .form-label,
+html[data-theme="light"][data-mode="pastel"] .modal-dialog .form-label,
+html[data-theme="light"][data-mode="retro"] .modal-dialog .form-label,
+html[data-theme="light"][data-mode="ocean"] .modal-dialog .form-label,
+html[data-theme="light"][data-mode="forest"] .modal-dialog .form-label,
+html[data-theme="light"][data-mode="sunset"] .modal-dialog .form-label,
+html[data-theme="light"][data-mode="mono"] .modal-dialog .form-label,
+html[data-theme="light"][data-mode="candy"] .modal-dialog .form-label,
+html[data-theme="light"][data-mode="lujo"] .modal-dialog .form-label {
+    color: #0a0a0a;
+}
+
+html[data-theme="light"][data-mode="neon"] .modal-dialog .form-input,
+html[data-theme="light"][data-mode="pastel"] .modal-dialog .form-input,
+html[data-theme="light"][data-mode="retro"] .modal-dialog .form-input,
+html[data-theme="light"][data-mode="ocean"] .modal-dialog .form-input,
+html[data-theme="light"][data-mode="forest"] .modal-dialog .form-input,
+html[data-theme="light"][data-mode="sunset"] .modal-dialog .form-input,
+html[data-theme="light"][data-mode="mono"] .modal-dialog .form-input,
+html[data-theme="light"][data-mode="candy"] .modal-dialog .form-input,
+html[data-theme="light"][data-mode="neon"] .modal-dialog .form-textarea,
+html[data-theme="light"][data-mode="pastel"] .modal-dialog .form-textarea,
+html[data-theme="light"][data-mode="retro"] .modal-dialog .form-textarea,
+html[data-theme="light"][data-mode="ocean"] .modal-dialog .form-textarea,
+html[data-theme="light"][data-mode="forest"] .modal-dialog .form-textarea,
+html[data-theme="light"][data-mode="sunset"] .modal-dialog .form-textarea,
+html[data-theme="light"][data-mode="mono"] .modal-dialog .form-textarea,
+html[data-theme="light"][data-mode="candy"] .modal-dialog .form-textarea,
+html[data-theme="light"][data-mode="lujo"] .modal-dialog .form-textarea {
+    background: rgba(0, 0, 0, 0.05);
+    border-color: rgba(0, 0, 0, 0.2);
+    color: #0a0a0a;
+}
+
+html[data-theme="light"][data-mode="neon"] .modal-dialog .form-input::placeholder,
+html[data-theme="light"][data-mode="pastel"] .modal-dialog .form-input::placeholder,
+html[data-theme="light"][data-mode="retro"] .modal-dialog .form-input::placeholder,
+html[data-theme="light"][data-mode="ocean"] .modal-dialog .form-input::placeholder,
+html[data-theme="light"][data-mode="forest"] .modal-dialog .form-input::placeholder,
+html[data-theme="light"][data-mode="sunset"] .modal-dialog .form-input::placeholder,
+html[data-theme="light"][data-mode="mono"] .modal-dialog .form-input::placeholder,
+html[data-theme="light"][data-mode="candy"] .modal-dialog .form-input::placeholder,
+html[data-theme="light"][data-mode="neon"] .modal-dialog .form-textarea::placeholder,
+html[data-theme="light"][data-mode="pastel"] .modal-dialog .form-textarea::placeholder,
+html[data-theme="light"][data-mode="retro"] .modal-dialog .form-textarea::placeholder,
+html[data-theme="light"][data-mode="ocean"] .modal-dialog .form-textarea::placeholder,
+html[data-theme="light"][data-mode="forest"] .modal-dialog .form-textarea::placeholder,
+html[data-theme="light"][data-mode="sunset"] .modal-dialog .form-textarea::placeholder,
+html[data-theme="light"][data-mode="mono"] .modal-dialog .form-textarea::placeholder,
+html[data-theme="light"][data-mode="candy"] .modal-dialog .form-textarea::placeholder,
+html[data-theme="light"][data-mode="lujo"] .modal-dialog .form-textarea::placeholder {
+    color: rgba(0, 0, 0, 0.5);
+}
+
+html[data-theme="light"][data-mode="neon"] .modal-dialog .summary-row,
+html[data-theme="light"][data-mode="pastel"] .modal-dialog .summary-row,
+html[data-theme="light"][data-mode="retro"] .modal-dialog .summary-row,
+html[data-theme="light"][data-mode="ocean"] .modal-dialog .summary-row,
+html[data-theme="light"][data-mode="forest"] .modal-dialog .summary-row,
+html[data-theme="light"][data-mode="sunset"] .modal-dialog .summary-row,
+html[data-theme="light"][data-mode="mono"] .modal-dialog .summary-row,
+html[data-theme="light"][data-mode="candy"] .modal-dialog .summary-row,
+html[data-theme="light"][data-mode="lujo"] .modal-dialog .summary-row {
+    color: #1a1a1a;
+}
+
+html[data-theme="light"][data-mode="neon"] .modal-dialog .modal-summary-box,
+html[data-theme="light"][data-mode="pastel"] .modal-dialog .modal-summary-box,
+html[data-theme="light"][data-mode="retro"] .modal-dialog .modal-summary-box,
+html[data-theme="light"][data-mode="ocean"] .modal-dialog .modal-summary-box,
+html[data-theme="light"][data-mode="forest"] .modal-dialog .modal-summary-box,
+html[data-theme="light"][data-mode="sunset"] .modal-dialog .modal-summary-box,
+html[data-theme="light"][data-mode="mono"] .modal-dialog .modal-summary-box,
+html[data-theme="light"][data-mode="candy"] .modal-dialog .modal-summary-box,
+html[data-theme="light"][data-mode="lujo"] .modal-dialog .modal-summary-box {
+    background: rgba(0, 0, 0, 0.05);
+    border-color: rgba(0, 0, 0, 0.2);
+}
+
+html[data-theme="light"][data-mode="neon"] .modal-dialog .modal-close-btn,
+html[data-theme="light"][data-mode="pastel"] .modal-dialog .modal-close-btn,
+html[data-theme="light"][data-mode="retro"] .modal-dialog .modal-close-btn,
+html[data-theme="light"][data-mode="ocean"] .modal-dialog .modal-close-btn,
+html[data-theme="light"][data-mode="forest"] .modal-dialog .modal-close-btn,
+html[data-theme="light"][data-mode="sunset"] .modal-dialog .modal-close-btn,
+html[data-theme="light"][data-mode="mono"] .modal-dialog .modal-close-btn,
+html[data-theme="light"][data-mode="candy"] .modal-dialog .modal-close-btn,
+html[data-theme="light"][data-mode="lujo"] .modal-dialog .modal-close-btn {
+    background: rgba(0, 0, 0, 0.08);
+    border-color: rgba(0, 0, 0, 0.2);
+    color: #0a0a0a;
+}
+
+html[data-theme="light"][data-mode="neon"] .modal-dialog .modal-close-btn:hover,
+html[data-theme="light"][data-mode="pastel"] .modal-dialog .modal-close-btn:hover,
+html[data-theme="light"][data-mode="retro"] .modal-dialog .modal-close-btn:hover,
+html[data-theme="light"][data-mode="ocean"] .modal-dialog .modal-close-btn:hover,
+html[data-theme="light"][data-mode="forest"] .modal-dialog .modal-close-btn:hover,
+html[data-theme="light"][data-mode="sunset"] .modal-dialog .modal-close-btn:hover,
+html[data-theme="light"][data-mode="mono"] .modal-dialog .modal-close-btn:hover,
+html[data-theme="light"][data-mode="candy"] .modal-dialog .modal-close-btn:hover,
+html[data-theme="light"][data-mode="lujo"] .modal-dialog .modal-close-btn:hover {
+    background: rgba(0, 0, 0, 0.15);
+}
+
+/* Mono en claro: precio y categoría en negro */
+html[data-theme="light"][data-mode="mono"] .modal-dialog .modal-price-badge {
+    color: #0a0a0a;
+    background: rgba(0, 0, 0, 0.08);
+    border-color: rgba(0, 0, 0, 0.25);
+}
+
+html[data-theme="light"][data-mode="mono"] .modal-dialog .modal-info-column .section-subtitle-tag {
+    color: #0a0a0a;
+    border-color: rgba(0, 0, 0, 0.25);
+    background: rgba(0, 0, 0, 0.05);
+}
+
+/* ==========================================================================
+   PANEL FLOTANTE DE MODOS (oculto hasta pulsar 6,7)
+   ========================================================================== */
+.vica-mode-panel {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 4000;
+    display: none;
+    flex-direction: column;
+    gap: 12px;
+    padding: 18px;
+    width: 240px;
+    max-height: 80vh;
+    overflow-y: auto;
+    background: rgba(13, 17, 23, 0.95);
+    border: 1px solid rgba(212, 175, 55, 0.5);
+    border-radius: 16px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    animation: vicaPanelIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.vica-mode-panel.vica-visible {
+    display: flex;
+}
+
+@keyframes vicaPanelIn {
+    from { opacity: 0; transform: translateY(20px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.vica-mode-panel-header {
+    font-family: 'Cinzel', serif;
+    font-size: 0.8rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #d4af37;
+    text-align: center;
+    margin-bottom: 4px;
+}
+
+.vica-mode-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.vica-mode-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #f0f6fc;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.vica-mode-btn:hover {
+    background: rgba(212, 175, 55, 0.15);
+    border-color: #d4af37;
+    transform: translateY(-2px);
+}
+
+.vica-mode-btn.vica-active {
+    background: linear-gradient(135deg, #bf953f, #fcf6ba, #b38728);
+    color: #0a0b10;
+    border-color: transparent;
+    box-shadow: 0 6px 18px rgba(212, 175, 55, 0.4);
+}
+
+.vica-mode-close {
+    margin-top: 2px;
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    color: #9198a1;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.vica-mode-close:hover {
+    color: #f0f6fc;
+    border-color: rgba(255, 255, 255, 0.3);
+}
 </style>
 </head>
 <body>
@@ -3637,7 +5222,6 @@ html[data-theme="light"] .discount-card {
                                     <!-- Simulación de Código QR Interactivo de la tarjeta -->
                                     <div class="card-qr-preview">
                                         <div class="qr-code-placeholder" aria-label="Código QR simulado para confirmación de asistencia">
-                                            
                                         </div>
                                         <span class="qr-text">Confirmar asistencia</span>
                                     </div>
@@ -3648,9 +5232,7 @@ html[data-theme="light"] .discount-card {
                     </div>
                 </div>
             </div>
-        </div>
-
-    </section>
+        </section>
     <!-- ==========================================
     SECCIÓN 3: CATEGORÍAS (Elige una ocasión)
  ========================================== -->
@@ -3867,7 +5449,6 @@ html[data-theme="light"] .discount-card {
             </article>
 
         </div>
-        </div>
     </div>
 </section>
 
@@ -3924,6 +5505,7 @@ html[data-theme="light"] .discount-card {
             <div class="modal-info-column">
                 <span class="section-subtitle-tag" id="modalCategoryTag">CUMPLEAÑOS</span>
                 <h3 class="modal-title font-serif" id="modal-card-title">Diseño Elegante Seleccionado</h3>
+                <div class="modal-price-badge" id="modalPriceBadge">$15.000 COP</div>
                 <p class="modal-subtitle">
                     Envíanos los datos de tu evento y prepararemos el diseño personalizado con este modelo exacto.
                 </p>
@@ -4201,6 +5783,21 @@ html[data-theme="light"] .discount-card {
                 </div>
             </details>
 
+            <!-- FAQ 5 -->
+            <details class="faq-item">
+                <summary class="faq-question font-serif">
+                    <span>¿Cuáles son los medios de pago disponibles?</span>
+                    <svg class="faq-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </summary>
+                <div class="faq-answer">
+                    <p>
+                        Por el momento recibimos pagos únicamente a través de <strong>Nequi</strong>. Puedes realizar tu transferencia al número <strong>320 422 47 87</strong> y enviarnos el comprobante por este medio para confirmar tu pedido.
+                    </p>
+                </div>
+            </details>
+
         </div>
 
     </div>
@@ -4219,6 +5816,7 @@ html[data-theme="light"] .discount-card {
             <p class="cta-desc">
                 Mándanos una foto de la invitación que te guste y nosotros la hacemos por ti.
             </p>
+            <div class="custom-price-badge">$20.000 COP</div>
 
             <form class="cta-custom-form" id="customDesignForm">
                 <div class="form-group">
@@ -4258,6 +5856,46 @@ html[data-theme="light"] .discount-card {
     </div>
 </section>
 
+<!-- ==========================================
+   SECCIÓN: HORARIO DE ATENCIÓN
+========================================== -->
+<section class="horario-section" id="horario" aria-labelledby="horario-title">
+    <div class="ambient-glow glow-gold-soft" aria-hidden="true"></div>
+    <div class="section-container">
+        <div class="section-header text-center">
+            <span class="section-subtitle-tag">HORARIO DE ATENCIÓN</span>
+            <h2 class="section-title font-serif" id="horario-title">
+                Siempre Contigo
+            </h2>
+            <p class="section-description">
+                Puedes contactarnos de lunes a domingo durante nuestro horario de atención.
+            </p>
+        </div>
+        <div class="horario-grid">
+            <div class="horario-card">
+                <div class="horario-card-header">
+                    <svg class="horario-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="9"></circle>
+                        <polyline points="12 7 12 12 17 15"></polyline>
+                    </svg>
+                    <span class="horario-dia">Lunes - Viernes</span>
+                </div>
+                <span class="horario-hora">7:00 AM - 7:00 PM</span>
+            </div>
+            <div class="horario-card">
+                <div class="horario-card-header">
+                    <svg class="horario-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="9"></circle>
+                        <polyline points="12 7 12 12 17 15"></polyline>
+                    </svg>
+                    <span class="horario-dia">Sábados y Domingos</span>
+                </div>
+                <span class="horario-hora">7:00 AM - 7:00 PM</span>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- FOOTER PIE DE PÁGINA -->
 <footer class="main-footer" id="contacto" role="contentinfo">
     <div class="section-container">
@@ -4278,7 +5916,6 @@ html[data-theme="light"] .discount-card {
                 <h4 class="footer-col-title font-serif">Navegación</h4>
                 <ul class="footer-links-list">
                     <li><a href="#categorias">Categorías</a></li>
-                    <li><a href="#galeria-categoria">Catálogo Galería</a></li>
                     <li><a href="#como-funciona">¿Cómo Funciona?</a></li>
                     <li><a href="#testimonios">Testimonios</a></li>
                     <li><a href="#faq">Preguntas Frecuentes</a></li>
@@ -4301,18 +5938,18 @@ html[data-theme="light"] .discount-card {
                 <h4 class="footer-col-title font-serif">Conéctate</h4>
                 <p class="footer-contact-info">Atención directa vía WhatsApp y Redes Sociales.</p>
                 <div class="footer-social-icons">
-                    <a href="#" aria-label="YouTube" class="social-btn">
+                    <a href="https://www.youtube.com/@VicaInvitation" aria-label="YouTube" class="social-btn">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19.1c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"></path>
                             <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon>
                         </svg>
                     </a>
-                    <a href="#" aria-label="Pinterest" class="social-btn">
+                    <a href="https://pin.it/7pg3MGNZ8" aria-label="Pinterest" class="social-btn">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <text x="50%" y="50%" dominant-baseline="central" text-anchor="middle" font-family="Georgia, serif" font-size="16" font-weight="bold" fill="currentColor" stroke="none">P</text>
                         </svg>
                     </a>
-                    <a href="#" aria-label="WhatsApp" class="social-btn">
+                    <a href="https://wa.me/3204224787" aria-label="WhatsApp" class="social-btn">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
                         </svg>
@@ -4321,6 +5958,7 @@ html[data-theme="light"] .discount-card {
             </div>
 
         </div>
+    </div>
     </footer>
 
     <!-- ==========================================
@@ -4329,7 +5967,7 @@ html[data-theme="light"] .discount-card {
     <section class="especiales-section" id="especiales" aria-labelledby="especiales-title">
         <div class="ambient-glow glow-gold-soft" aria-hidden="true"></div>
         <div class="ambient-glow glow-purple-soft" aria-hidden="true"></div>
-        <button class="especiales-back" onclick="closeEspeciales()" aria-label="Volver al inicio">
+        <button class="especiales-back" type="button" onclick="closeEspeciales(); document.getElementById('inicio').scrollIntoView({behavior:'smooth',block:'start'});" aria-label="Volver al inicio">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M19 12H5"></path>
                 <path d="m12 19-7-7 7-7"></path>
@@ -4380,8 +6018,14 @@ html[data-theme="light"] .discount-card {
             </div>
             <div class="form-group">
                 <label for="offerDuration" class="form-label">¿Cuánto dura el cupón?</label>
-                <input type="number" id="offerDuration" class="form-input" placeholder="Ej: 10 (equivale a 10 minutos)" min="1" max="100000" required>
-                <span class="input-suffix">min</span>
+                <div class="duration-input-wrapper">
+                    <input type="number" id="offerDuration" class="form-input duration-input" placeholder="Ej: 10" min="1" max="100000" required>
+                    <select id="offerDurationUnit" class="form-input duration-unit-select" aria-label="Unidad de duración">
+                        <option value="minutes">Minutos</option>
+                        <option value="hours">Horas</option>
+                        <option value="days">Días</option>
+                    </select>
+                </div>
             </div>
             <button type="submit" class="btn btn-gold btn-full-width">Publicar oferta</button>
         </form>
@@ -4425,6 +6069,15 @@ html[data-theme="light"] .discount-card {
                             </svg>
                         </span>
                     </button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Reconocimiento facial</label>
+                <div class="admin-face-box">
+                    <video id="adminFaceVideo" class="admin-face-video" autoplay playsinline muted></video>
+                    <div class="admin-face-overlay" id="adminFaceOverlay">
+                        <span id="adminFaceOverlayText">Iniciando cámara…</span>
+                    </div>
                 </div>
             </div>
             <p class="admin-form-hint" id="adminFormHint"></p>
@@ -4474,8 +6127,143 @@ html[data-theme="light"] .discount-card {
     </div>
 </div>
 
+<!-- ==========================================
+   PANEL DE MODOS SECRETOS (admin → 6,7)
+   ========================================== -->
+<div id="vicaModePanel" class="vica-mode-panel" role="dialog" aria-label="Modos de presentación" aria-hidden="true">
+    <div class="vica-mode-panel-header">Modos de presentación</div>
+    <div class="vica-mode-buttons">
+        <button type="button" class="vica-mode-btn" data-mode="normal">⚪ Normal</button>
+        <button type="button" class="vica-mode-btn" data-mode="neon">🌐 Neón</button>
+        <button type="button" class="vica-mode-btn" data-mode="pastel">🌸 Pastel</button>
+        <button type="button" class="vica-mode-btn" data-mode="retro">📜 Vintage</button>
+        <button type="button" class="vica-mode-btn" data-mode="ocean">🌊 Océano</button>
+        <button type="button" class="vica-mode-btn" data-mode="forest">🌲 Bosque</button>
+        <button type="button" class="vica-mode-btn" data-mode="sunset">🌅 Atardecer</button>
+        <button type="button" class="vica-mode-btn" data-mode="mono">⚫ Mono</button>
+        <button type="button" class="vica-mode-btn" data-mode="candy">🍬 Caramelo</button>
+        <button type="button" class="vica-mode-btn" data-mode="lujo">👑 Lujo Dorado</button>
+    </div>
+    <button type="button" class="vica-mode-close" id="vicaModeClose">Cerrar</button>
+</div>
+
 <script>
     // ==========================================
+// MODOS DE PRESENTACIÓN SECRETOS (admin → 6,7)
+// ==========================================
+function initPresentationModes() {
+    const panel = document.getElementById("vicaModePanel");
+    const closeBtn = document.getElementById("vicaModeClose");
+    const modeBtns = document.querySelectorAll(".vica-mode-btn");
+    const MODE_KEY = "vica_presentation_mode";
+
+    if (!panel) return;
+
+    // Referencia global: Firebase si está configurado, si no, solo local.
+    const modeRef = (typeof useFirebase !== "undefined" && useFirebase && typeof db !== "undefined" && db)
+        ? db.ref("presentationMode")
+        : null;
+
+    // Aplica visualmente el modo en TODOS los clientes (sin escribir de vuelta)
+    function applyMode(mode) {
+        if (mode && mode !== "normal") {
+            document.documentElement.setAttribute("data-mode", mode);
+        } else {
+            document.documentElement.removeAttribute("data-mode");
+            mode = "normal";
+        }
+        modeBtns.forEach((b) => {
+            b.classList.toggle("vica-active", b.getAttribute("data-mode") === mode);
+        });
+    }
+
+    // El admin cambia el modo: se guarda globalmente para que afecte a todos
+    function setMode(mode) {
+        const value = (mode && mode !== "normal") ? mode : null;
+        // Siempre guardar localmente como fallback persistente
+        if (value) {
+            localStorage.setItem(MODE_KEY, value);
+        } else {
+            localStorage.removeItem(MODE_KEY);
+        }
+        // Aplicar visualmente de inmediato en este cliente
+        applyMode(value);
+        // Sincronizar con Firebase si está disponible para afectar a todos
+        if (modeRef) {
+            modeRef.set(value);
+        }
+    }
+
+    function openPanel() {
+        panel.classList.add("vica-visible");
+        panel.setAttribute("aria-hidden", "false");
+        const current = document.documentElement.getAttribute("data-mode") || "normal";
+        modeBtns.forEach((b) => {
+            b.classList.toggle("vica-active", b.getAttribute("data-mode") === current);
+        });
+    }
+
+    function closePanel() {
+        panel.classList.remove("vica-visible");
+        panel.setAttribute("aria-hidden", "true");
+    }
+
+    modeBtns.forEach((btn) => {
+        btn.addEventListener("click", () => setMode(btn.getAttribute("data-mode")));
+    });
+
+    if (closeBtn) closeBtn.addEventListener("click", closePanel);
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closePanel();
+    });
+
+    if (modeRef) {
+        // Escuchar cambios globales: cuando el admin cambia el modo, todos lo ven
+        modeRef.on("value", (snapshot) => {
+            const val = snapshot.val();
+            applyMode(val);
+        });
+    } else {
+        // Sin Firebase: restaurar modo guardado localmente en este navegador
+        const savedMode = localStorage.getItem(MODE_KEY);
+        applyMode(savedMode);
+    }
+
+    // Comando secreto: el admin pulsa 6 luego 7 en secuencia
+    let modeBuffer = "";
+    document.addEventListener("keydown", (e) => {
+        const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : "";
+        const typing = tag === "input" || tag === "textarea" || e.target.isContentEditable;
+        if (typing) return;
+        if (e.ctrlKey || e.altKey || e.metaKey || e.shiftKey) return;
+
+        // Solo el admin (sesión activa) puede abrir los modos
+        const isAdmin = sessionStorage.getItem("vica_admin_session") === "true";
+        if (!isAdmin) return;
+
+        if (/^[0-9]$/.test(e.key)) {
+            modeBuffer += e.key;
+            if (modeBuffer.length > 2) modeBuffer = modeBuffer.slice(-2);
+            if (modeBuffer === "67") {
+                modeBuffer = "";
+                if (panel.classList.contains("vica-visible")) {
+                    closePanel();
+                } else {
+                    openPanel();
+                }
+            }
+        } else {
+            modeBuffer = "";
+        }
+    });
+
+    // Restaurar modo guardado al cargar
+    const savedMode = localStorage.getItem(MODE_KEY);
+    if (savedMode) applyMode(savedMode);
+}
+
+// ==========================================
 // ESPECIALES (Vista oculta)
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
@@ -4496,6 +6284,12 @@ function closeEspeciales() {
     if (especialesSection) {
         especialesSection.classList.remove('active');
         document.body.style.overflow = '';
+    }
+    const inicio = document.getElementById("inicio");
+    if (inicio) {
+        inicio.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+        window.scrollTo({ top: 0, behavior: "smooth" });
     }
 }
 
@@ -4829,13 +6623,20 @@ function initOfferModal() {
         const details = document.getElementById("offerDetails").value.trim();
         const code = document.getElementById("offerCode").value.trim();
         const duration = document.getElementById("offerDuration").value.trim();
+        const durationUnit = document.getElementById("offerDurationUnit").value;
 
         if (!percent || !details || !code || !duration) {
             alert("Por favor completa todos los campos de la oferta.");
             return;
         }
 
-        const durationMin = parseInt(duration, 10) || 0;
+        let durationMin = parseInt(duration, 10) || 0;
+        if (durationUnit === "hours") {
+            durationMin = durationMin * 60;
+        } else if (durationUnit === "days") {
+            durationMin = durationMin * 60 * 24;
+        }
+
         const offerData = {
             percent: percent,
             details: details,
@@ -4851,10 +6652,11 @@ function initOfferModal() {
         }
 
         const offerEl = document.getElementById("especialesOffer");
+        const messageEl = document.getElementById("especialesMessage");
         if (offerEl) {
             offerEl.innerHTML = renderDiscountCard(offerData);
             offerEl.style.display = "block";
-            messageEl.style.display = "none";
+            if (messageEl) messageEl.style.display = "none";
         }
 
         closeOfferModal();
@@ -4882,7 +6684,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // ==========================================
 const CONFIG = {
   // Número de teléfono de WhatsApp (código de país sin '+')
-  whatsappNumber: "573000000000",
+  whatsappNumber: "3204224787",
   modalTransitionMs: 300
 };
 
@@ -5074,7 +6876,8 @@ function initCustomDesignForm() {
       "- Festejado(s): " + celebrant + "\n" +
       "- Fecha: " + date + "\n" +
       "- Lugar: " + place + "\n" +
-      "- Hora: " + time;
+      "- Hora: " + time + "\n" +
+      "- Precio: $20.000 COP";
 
     if (extra) {
       message += "\n- Información adicional: " + extra;
@@ -5122,12 +6925,13 @@ function sendWhatsAppOrder(e) {
   message += `- Festejado/a: ${celebrant}\n`;
   message += `- Fecha y Hora: ${formattedDateTime}\n`;
   message += `- Lugar: ${location}\n`;
+  message += `- Precio: $15.000 COP\n`;
 
   if (customText) {
     message += `- Notas: ${customText}\n`;
   }
 
-  const encodedMessage = encodeURI(message);
+  const encodedMessage = encodeURIComponent(message);
   window.open(`https://wa.me/${CONFIG.whatsappNumber}?text=${encodedMessage}`, "_blank");
 
   closeCardView();
@@ -5138,7 +6942,7 @@ function sendWhatsAppOrder(e) {
 // ==========================================
 function initScrollAnimations() {
   const elementsToAnimate = document.querySelectorAll(
-    ".process-step-card, .testimonial-card, .faq-item, .section-header, .cta-banner-card"
+    ".process-step-card, .testimonial-card, .faq-item, .section-header, .cta-banner-card, .horario-card"
   );
 
   elementsToAnimate.forEach((el) => {
@@ -5342,6 +7146,7 @@ function renderGalleryCards(category) {
           </div>
           <h4 class="card-item-title font-serif">${category} Diseño #${number}</h4>
           <p class="card-item-desc">Diseño exclusivo para tu evento especial.</p>
+          <div class="card-item-price">$15.000 COP</div>
           <button class="btn btn-gold btn-full-width" onclick="openCardView('${category}', ${number}, '${src}')">
             Solicitar esta tarjeta
           </button>
@@ -5425,6 +7230,23 @@ function initGalleryCardEffects() {
 
     card.addEventListener("mouseleave", () => {
       card.style.zIndex = "1";
+    });
+
+    // Mostrar overlay al tocar en dispositivos táctiles
+    card.addEventListener("click", (e) => {
+      if (window.matchMedia("(hover: none)").matches) {
+        if (e.target.closest(".btn-action-view")) return;
+        const hoverActions = card.querySelector(".card-hover-actions");
+        if (hoverActions) {
+          const isVisible = hoverActions.style.opacity === "1";
+          document.querySelectorAll(".card-hover-actions").forEach(ha => {
+            ha.style.opacity = "";
+          });
+          if (!isVisible) {
+            hoverActions.style.opacity = "1";
+          }
+        }
+      }
     });
   });
 }
@@ -5912,6 +7734,54 @@ function initAdminAccess() {
   const userIn = form.querySelector("#adminUser");
   const passIn = form.querySelector("#adminPass");
   const togglePass = form.querySelector("#toggleAdminPass");
+  const faceVideo = form.querySelector("#adminFaceVideo");
+  const faceOverlay = form.querySelector("#adminFaceOverlay");
+  const faceOverlayText = form.querySelector("#adminFaceOverlayText");
+
+  let faceStream = null;
+
+  function setFaceOverlay(text, hide) {
+    if (faceOverlayText) faceOverlayText.textContent = text;
+    if (faceOverlay) faceOverlay.classList.toggle("hidden", !!hide);
+  }
+
+  async function startFaceCamera() {
+    if (!faceVideo) return;
+    setFaceOverlay("Cargando modelos de reconocimiento facial…");
+    try {
+      const ok = await FaceAuth.loadModels();
+      if (!ok) {
+        const detail = (typeof FaceAuth.getLastError === "function" && FaceAuth.getLastError()) || "";
+        const tip = window.location.protocol === "file:"
+          ? " Estás abriendo el HTML como file:// — los modelos no se pueden cargar. Usa un servidor local (ej. python -m http.server o npx serve) y abre http://localhost/"
+          : " Verifica la carpeta /models junto a Index.html y tu conexión.";
+        setFaceOverlay("No se pudieron cargar los modelos. " + (detail ? detail + ". " : "") + tip);
+        return;
+      }
+    } catch (e) {
+      setFaceOverlay("Error al cargar modelos: " + (e.message || e));
+      return;
+    }
+    try {
+      faceStream = await navigator.mediaDevices.getUserMedia({
+        video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: "user" },
+        audio: false,
+      });
+      faceVideo.srcObject = faceStream;
+      setFaceOverlay("Coloca tu rostro dentro del recuadro", true);
+    } catch (err) {
+      console.warn("No se pudo acceder a la cámara:", err);
+      setFaceOverlay("No se pudo acceder a la cámara. Revisa los permisos del navegador.");
+    }
+  }
+
+  function stopFaceCamera() {
+    if (faceStream) {
+      faceStream.getTracks().forEach((t) => t.stop());
+      faceStream = null;
+    }
+    if (faceVideo) faceVideo.srcObject = null;
+  }
 
   if (passIn && togglePass) {
     togglePass.addEventListener("click", (e) => {
@@ -5926,10 +7796,38 @@ function initAdminAccess() {
   const ADMIN_KEY = "vica_admin_account";
   const SESSION_KEY = "vica_admin_session";
 
-  function isAdminRegistered() {
+  async function isAdminRegistered() {
+    if (useFirebase && db) {
+      try {
+        const snap = await db.ref("admin_account").once("value");
+        if (snap.exists()) return true;
+        const localAdmin = JSON.parse(localStorage.getItem(ADMIN_KEY) || "{}");
+        if (localAdmin.user && localAdmin.pass) {
+          try {
+            await db.ref("admin_account").set(localAdmin);
+            return true;
+          } catch (e) {
+            console.warn("No se pudo migrar el admin a Firebase.", e);
+          }
+        }
+        return false;
+      } catch (e) {
+        showHint("Error de conexión. No se pudo verificar el admin.", "error");
+        return false;
+      }
+    }
     return !!localStorage.getItem(ADMIN_KEY);
   }
-  function getAdmin() {
+  async function getAdmin() {
+    if (useFirebase && db) {
+      try {
+        const snap = await db.ref("admin_account").once("value");
+        return snap.val() || {};
+      } catch (e) {
+        showHint("Error de conexión. No se pudo leer el admin.", "error");
+        return {};
+      }
+    }
     return JSON.parse(localStorage.getItem(ADMIN_KEY) || "{}");
   }
 
@@ -5940,22 +7838,34 @@ function initAdminAccess() {
 
   function openAdminModal() {
     form.reset();
-    if (isAdminRegistered()) {
-      title.textContent = "Acceder como admin";
-      hint.textContent = "";
-    } else {
-      title.textContent = "Crea tu cuenta de admin";
-      showHint("Primera vez. Registra un único admin (usuario y contraseña).", "error");
-    }
-    btnText.textContent = "Acceder como admin";
     modal.style.display = "flex";
     document.body.style.overflow = "hidden";
+    setFaceOverlay("Iniciando cámara…");
     setTimeout(() => userIn && userIn.focus(), 50);
+    isAdminRegistered().then((registered) => {
+      if (registered) {
+        title.textContent = "Acceder como admin";
+        showHint("Ingresa tus credenciales y verifica tu rostro.", "");
+      } else {
+        title.textContent = "Crea tu cuenta de admin";
+        showHint("Primera vez. Registra usuario, contraseña y tu rostro.", "error");
+      }
+      btnText.textContent = "Acceder como admin";
+    }).catch(() => {
+      title.textContent = "Acceder como admin";
+    });
+    Promise.resolve()
+      .then(() => startFaceCamera())
+      .catch((e) => {
+        console.warn("startFaceCamera error:", e);
+        setFaceOverlay("No se pudo iniciar la cámara. Puedes seguir usando usuario y contraseña.");
+      });
   }
 
   function closeAdminModal() {
     modal.style.display = "none";
     document.body.style.overflow = "";
+    stopFaceCamera();
   }
 
   modal.querySelectorAll("[data-action='close']").forEach((el) => {
@@ -5966,10 +7876,10 @@ function initAdminAccess() {
   });
 
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") closeAdminModal();
+    if (e.key === "Escape" && modal.style.display === "flex") closeAdminModal();
   });
 
-  form.addEventListener("submit", (e) => {
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const user = userIn.value.trim();
     const pass = passIn.value;
@@ -5978,9 +7888,39 @@ function initAdminAccess() {
       showHint("Ingresa usuario y contraseña.", "error");
       return;
     }
+    if (!faceVideo) {
+      showHint("Reconocimiento facial no disponible.", "error");
+      return;
+    }
 
-    if (!isAdminRegistered()) {
-      localStorage.setItem(ADMIN_KEY, JSON.stringify({ user: user, pass: pass }));
+    const registered = await isAdminRegistered();
+
+    if (!registered) {
+      showHint("Registrando rostro, no te muevas…", "");
+      try {
+        await FaceAuth.registrarRostroAdmin(faceVideo);
+      } catch (err) {
+        showHint("No se pudo registrar el rostro: " + (err.message || err), "error");
+        return;
+      }
+      const account = { user, pass };
+      if (useFirebase && db) {
+        try {
+          const result = await db.ref("admin_account").transaction((current) => {
+            if (current === null) return account;
+            return;
+          });
+          if (!result.committed) {
+            showHint("Ya existe un admin. Accede con tus credenciales.", "error");
+            return;
+          }
+        } catch (err) {
+          showHint("Error al guardar el admin.", "error");
+          return;
+        }
+      } else {
+        localStorage.setItem(ADMIN_KEY, JSON.stringify(account));
+      }
       sessionStorage.setItem(SESSION_KEY, "true");
       window.dispatchEvent(new Event("vica:admin-login"));
       showHint("¡Cuenta de admin creada!", "success");
@@ -5988,40 +7928,179 @@ function initAdminAccess() {
       return;
     }
 
-    const admin = getAdmin();
-    if (admin.user === user && admin.pass === pass) {
-      sessionStorage.setItem(SESSION_KEY, "true");
-      window.dispatchEvent(new Event("vica:admin-login"));
-      showHint("¡Bienvenido, " + user + "!", "success");
-      setTimeout(closeAdminModal, 1400);
-    } else {
+    const admin = await getAdmin();
+    if (admin.user !== user || admin.pass !== pass) {
       showHint("Credenciales incorrectas.", "error");
+      return;
     }
+
+    showHint("Verificando rostro…", "");
+    const ok = await FaceAuth.verificarAccesoAdmin(faceVideo);
+    if (!ok) {
+      showHint("Rostro no reconocido. Acceso denegado.", "error");
+      return;
+    }
+
+    sessionStorage.setItem(SESSION_KEY, "true");
+    window.dispatchEvent(new Event("vica:admin-login"));
+    showHint("¡Bienvenido, " + user + "!", "success");
+    setTimeout(closeAdminModal, 1400);
   });
 
   // Comando secreto: Ctrl+Alt+21 (mantener Ctrl+Alt y teclear 2 luego 1)
   let comboBuffer = "";
   document.addEventListener("keydown", (e) => {
-    if (e.ctrlKey && e.altKey && e.code && e.code.startsWith("Digit")) {
-      e.preventDefault();
-      comboBuffer += e.code.charAt(e.code.length - 1);
-      if (comboBuffer.length > 2) comboBuffer = comboBuffer.slice(1);
-      if (comboBuffer === "21") {
-        comboBuffer = "";
-        if (sessionStorage.getItem(SESSION_KEY) === "true") {
-          sessionStorage.removeItem(SESSION_KEY);
-          window.dispatchEvent(new Event("vica:admin-logout"));
-        } else {
-          openAdminModal();
+    const isMod = e.ctrlKey && e.altKey && !e.metaKey && !e.shiftKey;
+    if (isMod) {
+      const k = e.key;
+      if (k && /^[0-9]$/.test(k)) {
+        e.preventDefault();
+        comboBuffer += k;
+        if (comboBuffer.length > 2) comboBuffer = comboBuffer.slice(-2);
+        if (comboBuffer === "21") {
+          comboBuffer = "";
+          if (sessionStorage.getItem(SESSION_KEY) === "true") {
+            sessionStorage.removeItem(SESSION_KEY);
+            window.dispatchEvent(new Event("vica:admin-logout"));
+          } else {
+            openAdminModal();
+          }
         }
+        return;
       }
-      return;
     }
-    if (!e.ctrlKey && !e.altKey && !e.metaKey && !e.shiftKey) {
+    if (!e.ctrlKey && !e.altKey && !e.metaKey && !e.shiftKey && !e.altGraphKey) {
       comboBuffer = "";
     }
   });
 }
+
+// ==========================================
+// FACE-AUTH — Reconocimiento facial para acceso admin
+// ==========================================
+const FaceAuth = (() => {
+  const LOCAL_MODEL_URL = (function () {
+    try {
+      const u = new URL("./models/", window.location.href);
+      return u.href;
+    } catch (_) {
+      return "models/";
+    }
+  })();
+  const FALLBACK_MODEL_URLS = [
+    "https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights",
+    "https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@master/weights"
+  ];
+  const DESCRIPTOR_KEY = "vica_admin_face_descriptor";
+  const THRESHOLD = 0.5;
+  let modelsReady = false;
+  let loadingPromise = null;
+  let lastError = "";
+
+  async function tryLoadFrom(baseUrl) {
+    await faceapi.nets.tinyFaceDetector.loadFromUri(baseUrl);
+    await faceapi.nets.faceLandmark68Net.loadFromUri(baseUrl);
+    await faceapi.nets.faceRecognitionNet.loadFromUri(baseUrl);
+  }
+
+  async function loadModels() {
+    if (modelsReady) return true;
+    if (loadingPromise) return loadingPromise;
+    lastError = "";
+    loadingPromise = (async () => {
+      if (typeof faceapi === "undefined") {
+        lastError = "face-api.js no se cargó. Revisa tu conexión a internet.";
+        console.error("[FaceAuth]", lastError);
+        return false;
+      }
+      const sources = [LOCAL_MODEL_URL, ...FALLBACK_MODEL_URLS];
+      for (const url of sources) {
+        try {
+          console.info("[FaceAuth] Cargando modelos desde:", url);
+          await tryLoadFrom(url);
+          modelsReady = true;
+          console.info("[FaceAPI] Modelos cargados OK desde:", url);
+          return true;
+        } catch (err) {
+          const msg = (err && err.message) ? err.message : String(err);
+          lastError = `${url} → ${msg}`;
+          console.warn("[FaceAuth] Falló cargar modelos desde", url, err);
+        }
+      }
+      loadingPromise = null;
+      return false;
+    })();
+    return loadingPromise;
+  }
+
+  async function getDescriptorFromVideo(videoElement) {
+    if (!videoElement) throw new Error("VideoElement no proporcionado");
+    await loadModels();
+    if (!modelsReady) throw new Error("Modelos de face-api no cargados (revisa la carpeta /models)");
+    if (videoElement.readyState < 2) {
+      await new Promise((resolve) => {
+        const onMeta = () => { videoElement.removeEventListener("loadeddata", onMeta); resolve(); };
+        videoElement.addEventListener("loadeddata", onMeta);
+      });
+    }
+    const detection = await faceapi
+      .detectSingleFace(videoElement, new faceapi.TinyFaceDetectorOptions())
+      .withFaceLandmarks()
+      .withFaceDescriptor();
+    if (!detection) throw new Error("No se detectó ningún rostro");
+    return Array.from(detection.descriptor);
+  }
+
+  function getSavedDescriptor() {
+    const raw = localStorage.getItem(DESCRIPTOR_KEY);
+    if (!raw) return null;
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length === 128) return parsed;
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
+  async function registrarRostroAdmin(videoElement) {
+    const descriptor = await getDescriptorFromVideo(videoElement);
+    localStorage.setItem(DESCRIPTOR_KEY, JSON.stringify(descriptor));
+    return true;
+  }
+
+  async function verificarAccesoAdmin(videoElement) {
+    try {
+      const saved = getSavedDescriptor();
+      if (!saved) return false;
+      const current = await getDescriptorFromVideo(videoElement);
+      const distance = faceapi.euclideanDistance(saved, current);
+      return distance < THRESHOLD;
+    } catch (err) {
+      console.warn("FaceAuth.verificarAccesoAdmin:", err);
+      return false;
+    }
+  }
+
+  return { loadModels, registrarRostroAdmin, verificarAccesoAdmin, getLastError: () => lastError };
+})();
+
+// ==========================================
+// RESET INICIAL: eliminar admin existente para forzar re-registro
+// con usuario, contraseña y reconocimiento facial
+// ==========================================
+(function resetAdminForFaceAuth() {
+  try {
+    localStorage.removeItem("vica_admin_account");
+    localStorage.removeItem("vica_admin_face_descriptor");
+    sessionStorage.removeItem("vica_admin_session");
+    if (typeof db !== "undefined" && db) {
+      db.ref("admin_account").remove().catch(() => {});
+    }
+  } catch (e) {
+    console.warn("No se pudo limpiar el admin existente.", e);
+  }
+})();
 
 // ==========================================
 // INICIALIZACIÓN DE SECCIONES 1 A 4
@@ -6039,8 +8118,9 @@ document.addEventListener("DOMContentLoaded", () => {
    initCategoryCardsNav();
    initCustomDesignForm();
    initTestimonialForm();
-   initAdminAccess();
-   showMainView();
+    initAdminAccess();
+    initPresentationModes();
+    showMainView();
 });
 </script>
 </body>
