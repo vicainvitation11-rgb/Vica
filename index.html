@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es" data-theme="dark">
 <head>
     <script>
@@ -5624,18 +5624,30 @@ html[data-theme="light"][data-mode="mono"] .modal-dialog .modal-info-column .sec
                         <input type="text" id="orderCelebrant" class="form-input" placeholder="Ej. Carlos & Ana" required>
                     </div>
 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="orderEventDateTime" class="form-label">Fecha y Hora del Evento</label>
-                            <input type="datetime-local" id="orderEventDateTime" class="form-input form-input-datetime" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="orderLocation" class="form-label">Lugar del Evento</label>
-                            <input type="text" id="orderLocation" class="form-input" placeholder="Ej. Salón Real" required>
-                        </div>
-                    </div>
+                      <div class="form-row">
+                          <div class="form-group">
+                              <label for="orderEventDate" class="form-label">Fecha del Evento</label>
+                              <input type="date" id="orderEventDate" class="form-input" required>
+                          </div>
+                          <div class="form-group">
+                              <label for="orderEventTime" class="form-label">Hora del Evento</label>
+                              <input type="time" id="orderEventTime" class="form-input" required>
+                          </div>
+                      </div>
 
-                    <div class="form-group">
+                      <div class="form-group">
+                          <label for="orderLocation" class="form-label">Lugar del Evento</label>
+                          <input type="text" id="orderLocation" class="form-input" placeholder="Ej. Salón Real" required>
+                      </div>
+
+                      <div class="form-row" id="ageGroup" style="display:none;">
+                         <div class="form-group">
+                             <label for="orderAge" class="form-label">Edad</label>
+                             <input type="number" id="orderAge" class="form-input" placeholder="Ej. 25" min="0" max="120">
+                         </div>
+                     </div>
+
+                     <div class="form-group">
                         <label for="orderCustomText" class="form-label">Detalles Adicionales / Texto personalizado (opcional)</label>
                         <textarea id="orderCustomText" class="form-textarea" rows="3" placeholder="Código de vestimenta, mensaje especial, notas..."></textarea>
                     </div>
@@ -5897,7 +5909,7 @@ html[data-theme="light"][data-mode="mono"] .modal-dialog .modal-info-column .sec
                 </summary>
                 <div class="faq-answer">
                     <p>
-                        Por el momento recibimos pagos únicamente a través de <strong>Nequi</strong>. Puedes realizar tu transferencia al número <strong>320 422 47 87</strong> y enviarnos el comprobante por este medio para confirmar tu pedido.
+                         Por el momento recibimos pagos únicamente a través de <strong>Nequi</strong>. Puedes realizar tu transferencia al número <strong>3204224787</strong> y enviarnos el comprobante por este medio para confirmar tu pedido.
                     </p>
                 </div>
             </details>
@@ -6055,7 +6067,7 @@ html[data-theme="light"][data-mode="mono"] .modal-dialog .modal-info-column .sec
                             <text x="50%" y="50%" dominant-baseline="central" text-anchor="middle" font-family="Georgia, serif" font-size="16" font-weight="bold" fill="currentColor" stroke="none">P</text>
                         </svg>
                     </a>
-                    <a href="https://wa.me/3204224787" aria-label="WhatsApp" class="social-btn">
+                     <a href="https://wa.me/573204224787" aria-label="WhatsApp" class="social-btn">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
                         </svg>
@@ -6790,7 +6802,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // ==========================================
 const CONFIG = {
   // Número de teléfono de WhatsApp (código de país sin '+')
-  whatsappNumber: "3204224787",
+  whatsappNumber: "573204224787",
   modalTransitionMs: 300
 };
 
@@ -6940,6 +6952,13 @@ function openCardView(categoryTag, number, imageSrc) {
   if (title) title.textContent = titleText;
   if (codeText) codeText.textContent = cardCode;
 
+  const ageGroup = document.getElementById("ageGroup");
+  const ageInput = document.getElementById("orderAge");
+  if (ageGroup) {
+    ageGroup.style.display = (categoryTag === "Cumpleaños") ? "block" : "none";
+  }
+  if (ageInput) ageInput.value = "";
+
   modal.classList.add("active");
   document.body.style.overflow = "hidden";
 }
@@ -7003,18 +7022,19 @@ function sendWhatsAppOrder(e) {
 
   const name = document.getElementById("orderName")?.value.trim();
   const celebrant = document.getElementById("orderCelebrant")?.value.trim();
-  const eventDateTime = document.getElementById("orderEventDateTime")?.value;
+  const eventDate = document.getElementById("orderEventDate")?.value;
+  const eventTime = document.getElementById("orderEventTime")?.value;
   const location = document.getElementById("orderLocation")?.value.trim();
   const customText = document.getElementById("orderCustomText")?.value.trim();
   const cardCode = document.getElementById("modalCardCodeText")?.textContent;
   const cardTitle = document.getElementById("modal-card-title")?.textContent;
 
-  if (!name || !celebrant || !eventDateTime || !location) {
+  if (!name || !celebrant || !eventDate || !eventTime || !location) {
     alert("Por favor completa los campos requeridos.");
     return;
   }
 
-  const dateObj = new Date(eventDateTime);
+  const dateObj = new Date(eventDate + "T" + eventTime);
   const formattedDate = dateObj.toLocaleDateString("es-ES", {
     year: "numeric",
     month: "long",
@@ -7032,6 +7052,12 @@ function sendWhatsAppOrder(e) {
   message += `- Fecha y Hora: ${formattedDateTime}\n`;
   message += `- Lugar: ${location}\n`;
   message += `- Precio: $15.000 COP\n`;
+
+  const age = document.getElementById("orderAge")?.value.trim();
+  const isBirthday = (document.getElementById("modalCategoryTag")?.textContent || "").toUpperCase() === "CUMPLEAÑOS";
+  if (isBirthday && age) {
+    message += `- Edad: ${age}\n`;
+  }
 
   if (customText) {
     message += `- Notas: ${customText}\n`;
