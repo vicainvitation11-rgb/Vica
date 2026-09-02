@@ -6500,9 +6500,11 @@ function updateDiscountCountdowns() {
         }
         if (!span) return;
         const totalSec = Math.floor(diff / 1000);
-        const m = Math.floor(totalSec / 60);
+        const d = Math.floor(totalSec / 86400);
+        const h = Math.floor((totalSec % 86400) / 3600);
+        const m = Math.floor((totalSec % 3600) / 60);
         const s = totalSec % 60;
-        span.textContent = `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+        span.textContent = `${d}:${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
     });
 }
 
