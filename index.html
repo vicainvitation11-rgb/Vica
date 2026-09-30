@@ -1,26 +1,6 @@
 <!DOCTYPE html>
 <html lang="es" data-theme="dark">
 <head>
-    <script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "LocalBusiness",
-  "name": "Vica",
-  "description": "Diseño de tarjetas de invitación personalizadas para cumpleaños y eventos especiales a partir de fotos o catálogo.",
-  "url": "https://vicainvitation11-rgb.github.io/Vica/",
-  "priceRange": "$$"
-}
-</script>
-    <meta name="description" content="Diseñamos tarjetas de invitación únicas para cumpleaños y todo tipo de eventos. Explora nuestro catálogo o envíanos una foto para crear un diseño personalizado.">
-    <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-ECXBTWF6XT"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-ECXBTWF6XT');
-</script>
     <script>
         (function() {
             var mode = localStorage.getItem("vica_presentation_mode");
@@ -50,8 +30,7 @@
 
     <!-- Vinculación de estilos CSS (Lienzo para la siguiente fase) -->
     <link rel="stylesheet" href="css/styles.css">
-    <link rel="shortcut icon" href="logoVICAnum5-removebg-preview.png?v=2" type="image/png">
-    <link rel="icon" href="logoVICAnum5-removebg-preview.png?v=2" type="image/png">
+    <link rel="icon" type="image/png" href="logoVICAnum5-removebg-preview.png">
 
     <!-- Firebase (Realtime Database) - COMPLETA con tus claves en el script -->
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -7314,10 +7293,14 @@ function renderGalleryCards(category) {
   initGalleryCardEffects();
 }
 
-function showCategoryPage(categoryName) {
+function showCategoryPage(categoryName, updateHistory = true) {
   const mainSections = document.querySelectorAll("main > section");
   const categoryView = document.getElementById("galeria-categoria");
   const categoryTitle = document.getElementById("categoryTitle");
+
+  if (updateHistory && history.state?.vicaCategory !== categoryName) {
+    history.pushState({ vicaCategory: categoryName }, "", `#categoria=${encodeURIComponent(categoryName)}`);
+  }
 
   mainSections.forEach(sec => {
     if (sec && sec.id !== "galeria-categoria") {
@@ -7333,7 +7316,12 @@ function showCategoryPage(categoryName) {
   }
 }
 
-function showMainView() {
+function showMainView(updateHistory = true) {
+  if (updateHistory && history.state?.vicaCategory) {
+    history.back();
+    return;
+  }
+
   const mainSections = document.querySelectorAll("main > section");
   const categoryView = document.getElementById("galeria-categoria");
 
@@ -7347,6 +7335,14 @@ function showMainView() {
 
   document.getElementById("inicio")?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
+
+window.addEventListener("popstate", (event) => {
+  if (event.state?.vicaCategory) {
+    showCategoryPage(event.state.vicaCategory, false);
+  } else {
+    showMainView(false);
+  }
+});
 
 // ==========================================
 // SECCIÓN 3: CATEGORÍAS (REDIRECCIÓN Y FILTRADO AUTOMÁTICO)
